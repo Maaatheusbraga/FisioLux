@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --bg: oklch(0.99 0 0);
+  --surface: oklch(0.97 0.004 160);
+  --surface-raised: oklch(1 0 0);
+  --border: oklch(0.88 0.008 160);
+  --ink: oklch(0.22 0.02 160);
+  --muted: oklch(0.45 0.02 160);
+  --subtle: oklch(0.55 0.015 160);
+  --primary: oklch(0.45 0.11 160);
+  --primary-fg: oklch(0.99 0 0);
+  --accent: oklch(0.48 0.12 220);
+  --danger: oklch(0.55 0.19 25);
+  --success: oklch(0.52 0.14 155);
+  --ring: oklch(0.45 0.11 160);
+  --sidebar: oklch(0.975 0.006 160);
+  --overlay: oklch(0.2 0 0 / 0.45);
+}
+
+html.dark {
+  color-scheme: dark;
+  --bg: oklch(0.145 0 0);
+  --surface: oklch(0.185 0.004 160);
+  --surface-raised: oklch(0.215 0.005 160);
+  --border: oklch(0.28 0.008 160);
+  --ink: oklch(0.96 0.005 160);
+  --muted: oklch(0.68 0.015 160);
+  --subtle: oklch(0.52 0.012 160);
+  --primary: oklch(0.72 0.12 160);
+  --primary-fg: oklch(0.16 0.02 160);
+  --accent: oklch(0.70 0.09 220);
+  --danger: oklch(0.63 0.19 25);
+  --success: oklch(0.72 0.14 155);
+  --ring: oklch(0.72 0.12 160);
+  --sidebar: oklch(0.16 0.005 160);
+  --overlay: oklch(0.05 0 0 / 0.6);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html,
+  body {
+    min-height: 100%;
+  }
+
+  body {
+    @apply bg-bg text-ink antialiased;
+    font-feature-settings: "ss01" on, "cv11" on;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-bg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

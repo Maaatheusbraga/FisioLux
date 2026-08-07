@@ -1,0 +1,26 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fisioLux-app
+    ports:
+      - "${PORT:-3000}:3000"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 3000
+    restart: unless-stopped
+    # healthcheck será ativado quando /api/health existir (Fase 3+)
+    # healthcheck:
+    #   test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+    #   interval: 30s
+    #   timeout: 5s
+    #   retries: 3
+    networks:
+      - fisioLux
+
+networks:
+  fisioLux:
+    driver: bridge

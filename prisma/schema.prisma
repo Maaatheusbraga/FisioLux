@@ -1,0 +1,550 @@
+// FisioLux — Prisma Schema (Fase 2)
+// Tabelas e colunas de negócio em português + snake_case.
+// created_at / updated_at / deleted_at permanecem em inglês (padrão técnico).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────
+
+enum perfil_usuario {
+  administrador
+  fisioterapeuta
+  recepcao
+}
+
+enum sexo_paciente {
+  masculino
+  feminino
+  outro
+  nao_informado
+}
+
+enum status_paciente {
+  em_tratamento
+  alta
+}
+
+enum status_sessao {
+  registrada
+  cancelada
+}
+
+enum tipo_avaliacao {
+  inicial
+  periodica
+}
+
+enum categoria_arquivo {
+  encaminhamento
+  relatorio_medico
+  laudo
+  receita
+  foto_antes
+  foto_depois
+  foto_evolucao
+  video
+  documento
+}
+
+enum storage_provider {
+  supabase
+  r2
+}
+
+enum tipo_evento_timeline {
+  paciente_criado
+  paciente_atualizado
+  paciente_excluido
+  sessao_criada
+  sessao_atualizada
+  sessao_cancelada
+  protocolo_criado
+  protocolo_atualizado
+  protocolo_vinculado
+  anamnese_criada
+  anamnese_atualizada
+  avaliacao_criada
+  avaliacao_atualizada
+  plano_terapeutico_criado
+  plano_terapeutico_atualizado
+  evolucao_criada
+  evolucao_atualizada
+  alta_registrada
+  tratamento_reaberto
+  arquivo_adicionado
+  arquivo_excluido
+  documento_anexado
+}
+
+enum acao_auditoria {
+  criar
+  alterar
+  excluir
+  restaurar
+}
+
+// ─────────────────────────────────────────────
+// Clínicas (tenant)
+// ─────────────────────────────────────────────
+
+model Clinica {
+  id        String    @id @default(uuid()) @db.Uuid
+  nome      String
+  cnpj      String?
+  telefone  String?
+  email     String?
+  endereco  String?
+  ativa     Boolean   @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  deleted_at DateTime?
+
+  usuarios             Usuario[]
+  pacientes            Paciente[]
+  protocolos           Protocolo[]
+  sessoes              Sessao[]
+  anamneses            Anamnese[]
+  avaliacoes           Avaliacao[]
+  planos_terapeuticos  PlanoTerapeutico[]
+  evolucoes            Evolucao[]
+  altas                Alta[]
+  arquivos             Arquivo[]
+  timeline_eventos     TimelineEvento[]
+  logs_auditoria       LogAuditoria[]
+
+  @@index([nome])
+  @@index([deleted_at])
+  @@map("clinicas")
+}
+
+// ─────────────────────────────────────────────
+// Usuários (1 usuário → 1 clínica)
+// ─────────────────────────────────────────────
+
+model Usuario {
+  id            String         @id @default(uuid()) @db.Uuid
+  clinica_id    String         @db.Uuid
+  /// UUID do usuário no Supabase Auth (auth.users.id). Preenchido na Fase 3.
+  auth_user_id  String?        @unique @db.Uuid
+  nome          String
+  email         String
+  telefone      String?
+  perfil        perfil_usuario
+  ativo         Boolean        @default(true)
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+  deleted_at    DateTime?
+
+  clinica Clinica @relation(fields: [clinica_id], references: [id], onDelete: Restrict)
+
+  sessoes_como_profissional Sessao[]            @relation("SessaoProfissional")
+  anamneses                 Anamnese[]
+  avaliacoes                Avaliacao[]
+  planos_terapeuticos       PlanoTerapeutico[]
+  evolucoes                 Evolucao[]
+  altas                     Alta[]
+  arquivos_enviados         Arquivo[]           @relation("ArquivoUsuario")
+  timeline_eventos          TimelineEvento[]    @relation("TimelineResponsavel")
+  logs_auditoria            LogAuditoria[]
+
+  // Unicidade de e-mail por clínica (ativos): índice parcial na migration RLS
+  @@index([clinica_id])
+  @@index([clinica_id, email])
+  @@index([perfil])
+  @@index([deleted_at])
+  @@map("usuarios")
+}
+
+// ─────────────────────────────────────────────
+// Pacientes
+// ─────────────────────────────────────────────
+
+model Paciente {
+  id                          String          @id @default(uuid()) @db.Uuid
+  clinica_id                  String          @db.Uuid
+  nome                        String
+  cpf                         String
+  rg                          String?
+  sexo                        sexo_paciente   @default(nao_informado)
+  data_nascimento             DateTime        @db.Date
+  telefone                    String?
+  whatsapp                    String?
+  email                       String?
+  endereco                    String?
+  observacoes                 String?
+  diagnostico                 String?
+  medicamentos                String?
+  alergias                    String?
+  historico_medico            String?
+  objetivo_tratamento         String?
+  contato_emergencia_nome     String?
+  contato_emergencia_telefone String?
+  contato_emergencia_parentesco String?
+  status                      status_paciente @default(em_tratamento)
+  created_at                  DateTime        @default(now())
+  updated_at                  DateTime        @updatedAt
+  deleted_at                  DateTime?
+
+  clinica Clinica @relation(fields: [clinica_id], references: [id], onDelete: Restrict)
+
+  sessoes             Sessao[]
+  anamneses           Anamnese[]
+  avaliacoes          Avaliacao[]
+  planos_terapeuticos PlanoTerapeutico[]
+  evolucoes           Evolucao[]
+  altas               Alta[]
+  arquivos            Arquivo[]
+  timeline_eventos    TimelineEvento[]
+
+  @@index([clinica_id])
+  @@index([clinica_id, nome])
+  @@index([clinica_id, status])
+  @@index([clinica_id, cpf])
+  @@index([telefone])
+  @@index([whatsapp])
+  @@index([deleted_at])
+  @@map("pacientes")
+}
+
+// ─────────────────────────────────────────────
+// Protocolos (reutilizáveis por clínica)
+// ─────────────────────────────────────────────
+
+model Protocolo {
+  id              String   @id @default(uuid()) @db.Uuid
+  clinica_id      String   @db.Uuid
+  nome            String
+  descricao       String?
+  objetivo        String?
+  /// Tempo estimado em minutos
+  tempo_estimado  Int?
+  observacoes     String?
+  /// Categorias livres por clínica (ex.: "Ortopedia", "RPG")
+  categorias      String[] @default([])
+  ativo           Boolean  @default(true)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  deleted_at      DateTime?
+
+  clinica Clinica @relation(fields: [clinica_id], references: [id], onDelete: Restrict)
+
+  sessoes_protocolos SessaoProtocolo[]
+
+  @@index([clinica_id])
+  @@index([clinica_id, nome])
+  @@index([deleted_at])
+  @@map("protocolos")
+}
+
+// ─────────────────────────────────────────────
+// Sessões (registro clínico — não é agenda)
+// ─────────────────────────────────────────────
+
+model Sessao {
+  id               String        @id @default(uuid()) @db.Uuid
+  clinica_id       String        @db.Uuid
+  paciente_id      String        @db.Uuid
+  profissional_id  String        @db.Uuid
+  realizado_em     DateTime
+  procedimentos    String?
+  equipamentos     String?
+  /// Escala de dor 0–10
+  escala_dor       Int?
+  observacoes      String?
+  status           status_sessao @default(registrada)
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @updatedAt
+  deleted_at       DateTime?
+
+  clinica      Clinica @relation(fields: [clinica_id], references: [id], onDelete: Restrict)
+  paciente     Paciente @relation(fields: [paciente_id], references: [id], onDelete: Restrict)
+  profissional Usuario  @relation("SessaoProfissional", fields: [profissional_id], references: [id], onDelete: Restrict)
+
+  protocolos       SessaoProtocolo[]
+  arquivos         Arquivo[]
+  evolucoes        Evolucao[]
+  timeline_eventos TimelineEvento[]
+
+  @@index([clinica_id])
+  @@index([paciente_id])
+  @@index([profissional_id])
+  @@index([clinica_id, realizado_em])
+  @@index([deleted_at])
+  @@map("sessoes")
+}
+
+model SessaoProtocolo {
+  sessao_id     String @db.Uuid
+  protocolo_id  String @db.Uuid
+  created_at    DateTime @default(now())
+
+  sessao    Sessao    @relation(fields: [sessao_id], references: [id], onDelete: Cascade)
+  protocolo Protocolo @relation(fields: [protocolo_id], references: [id], onDelete: Restrict)
+
+  @@id([sessao_id, protocolo_id])
+  @@index([protocolo_id])
+  @@map("sessoes_protocolos")
+}
+
+// ─────────────────────────────────────────────
+// Prontuário
+// ─────────────────────────────────────────────
+
+model Anamnese {
+  id                      String   @id @default(uuid()) @db.Uuid
+  clinica_id              String   @db.Uuid
+  paciente_id             String   @db.Uuid
+  usuario_id              String   @db.Uuid
+  data_anamnese           DateTime @default(now())
+  queixa_principal        String?
+  historia_doenca_atual   String?
+  historico_familiar      String?
+  historico_social        String?
+  habitos_vida            String?
+  exames_complementares   String?
+  observacoes             String?
+  created_at              DateTime @default(now())
+  updated_at              DateTime @updatedAt
+  deleted_at              DateTime?
+
+  clinica  Clinica  @relation(fields: [clinica_id], references: [id], onDelete: Restrict)
+  paciente Paciente @relation(fields: [paciente_id], references: [id], onDelete: Restrict)
+  usuario  Usuario  @relation(fields: [usuario_id], references: [id], onDelete: Restrict)
+
+  timeline_eventos TimelineEvento[]
+
+  @@index([clinica_id])
+  @@index([paciente_id])
+  @@index([deleted_at])
+  @@map("anamneses")
+}
+
+model Avaliacao {
+  id                            String         @id @default(uuid()) @db.Uuid
+  clinica_id                    String         @db.Uuid
+  paciente_id                   String         @db.Uuid
+  usuario_id                    String         @db.Uuid
+  tipo                          tipo_avaliacao
+  data_avaliacao                DateTime       @default(now())
+  queixa_principal              String?
+  exame_fisico                  String?
+  diagnostico_fisioterapeutico  String?
+  objetivos                     String?
+  observacoes                   String?
+  /// Campos extras estruturados sem migrar schema a cada evolução clínica
+  dados_complementares          Json?
+  created_at                    DateTime       @default(now())
+  updated_at                    DateTime       @updatedAt
+  deleted_at                    DateTime?
+
+  clinica  Clinica  @relation(fields: [clinica_id], references: [id], onDelete: Restrict)
+  paciente Paciente @relation(fields: [paciente_id], references: [id], onDelete: Restrict)
+  usuario  Usuario  @relation(fields: [usuario_id], references: [id], onDelete: Restrict)
+
+  timeline_eventos TimelineEvento[]
+
+  @@index([clinica_id])
+  @@index([paciente_id])
+  @@index([tipo])
+  @@index([deleted_at])
+  @@map("avaliacoes")
+}
+
+model PlanoTerapeutico {
+  id                   String   @id @default(uuid()) @db.Uuid
+  clinica_id           String   @db.Uuid
+  paciente_id          String   @db.Uuid
+  usuario_id           String   @db.Uuid
+  data_plano           DateTime @default(now())
+  objetivos            String?
+  condutas             String?
+  frequencia_sugerida  String?
+  previsao_sessoes     Int?
+  observacoes          String?
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+  deleted_at           DateTime?
+
+  clinica  Clinica  @relation(fields: [clinica_id], references: [id], onDelete: Restrict)
+  paciente Paciente @relation(fields: [paciente_id], references: [id], onDelete: Restrict)
+  usuario  Usuario  @relation(fields: [usuario_id], references: [id], onDelete: Restrict)
+
+  timeline_eventos TimelineEvento[]
+
+  @@index([clinica_id])
+  @@index([paciente_id])
+  @@index([deleted_at])
+  @@map("planos_terapeuticos")
+}
+
+model Evolucao {
+  id            String   @id @default(uuid()) @db.Uuid
+  clinica_id    String   @db.Uuid
+  paciente_id   String   @db.Uuid
+  usuario_id    String   @db.Uuid
+  sessao_id     String?  @db.Uuid
+  data_evolucao DateTime @default(now())
+  descricao     String
+  escala_dor    Int?
+  observacoes   String?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  deleted_at    DateTime?
+
+  clinica  Clinica  @relation(fields: [clinica_id], references: [id], onDelete: Restrict)
+  paciente Paciente @relation(fields: [paciente_id], references: [id], onDelete: Restrict)
+  usuario  Usuario  @relation(fields: [usuario_id], references: [id], onDelete: Restrict)
+  sessao   Sessao?  @relation(fields: [sessao_id], references: [id], onDelete: SetNull)
+
+  timeline_eventos TimelineEvento[]
+
+  @@index([clinica_id])
+  @@index([paciente_id])
+  @@index([sessao_id])
+  @@index([deleted_at])
+  @@map("evolucoes")
+}
+
+model Alta {
+  id               String    @id @default(uuid()) @db.Uuid
+  clinica_id       String    @db.Uuid
+  paciente_id      String    @db.Uuid
+  usuario_id       String    @db.Uuid
+  data_alta        DateTime  @default(now())
+  motivo           String?
+  observacoes      String?
+  /// Preenchido quando o tratamento é reaberto
+  data_reabertura  DateTime?
+  usuario_reabertura_id String? @db.Uuid
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+
+  clinica  Clinica  @relation(fields: [clinica_id], references: [id], onDelete: Restrict)
+  paciente Paciente @relation(fields: [paciente_id], references: [id], onDelete: Restrict)
+  usuario  Usuario  @relation(fields: [usuario_id], references: [id], onDelete: Restrict)
+
+  timeline_eventos TimelineEvento[]
+
+  @@index([clinica_id])
+  @@index([paciente_id])
+  @@index([data_alta])
+  @@map("altas")
+}
+
+// ─────────────────────────────────────────────
+// Arquivos (somente metadados)
+// ─────────────────────────────────────────────
+
+model Arquivo {
+  id           String            @id @default(uuid()) @db.Uuid
+  clinica_id   String            @db.Uuid
+  paciente_id  String?           @db.Uuid
+  sessao_id    String?           @db.Uuid
+  usuario_id   String            @db.Uuid
+  provider     storage_provider  @default(supabase)
+  bucket       String
+  storage_key  String
+  mime_type    String
+  tamanho      BigInt
+  categoria    categoria_arquivo
+  descricao    String?
+  nome_original String?
+  data_upload  DateTime          @default(now())
+  created_at   DateTime          @default(now())
+  updated_at   DateTime          @updatedAt
+  deleted_at   DateTime?
+
+  clinica  Clinica  @relation(fields: [clinica_id], references: [id], onDelete: Restrict)
+  paciente Paciente? @relation(fields: [paciente_id], references: [id], onDelete: Restrict)
+  sessao   Sessao?   @relation(fields: [sessao_id], references: [id], onDelete: SetNull)
+  usuario  Usuario   @relation("ArquivoUsuario", fields: [usuario_id], references: [id], onDelete: Restrict)
+
+  timeline_eventos TimelineEvento[]
+
+  @@unique([clinica_id, storage_key])
+  @@index([clinica_id])
+  @@index([paciente_id])
+  @@index([sessao_id])
+  @@index([categoria])
+  @@index([deleted_at])
+  @@map("arquivos")
+}
+
+// ─────────────────────────────────────────────
+// Timeline (coração do sistema)
+// Sem soft delete — histórico permanece
+// ─────────────────────────────────────────────
+
+model TimelineEvento {
+  id                    String                @id @default(uuid()) @db.Uuid
+  clinica_id            String                @db.Uuid
+  paciente_id           String                @db.Uuid
+  usuario_id            String                @db.Uuid
+  tipo                  tipo_evento_timeline
+  descricao             String
+  ocorrido_em           DateTime              @default(now())
+  sessao_id             String?               @db.Uuid
+  arquivo_id            String?               @db.Uuid
+  anamnese_id           String?               @db.Uuid
+  avaliacao_id          String?               @db.Uuid
+  plano_terapeutico_id  String?               @db.Uuid
+  evolucao_id           String?               @db.Uuid
+  alta_id               String?               @db.Uuid
+  metadados             Json?
+  created_at            DateTime              @default(now())
+
+  clinica            Clinica           @relation(fields: [clinica_id], references: [id], onDelete: Restrict)
+  paciente           Paciente          @relation(fields: [paciente_id], references: [id], onDelete: Restrict)
+  usuario            Usuario           @relation("TimelineResponsavel", fields: [usuario_id], references: [id], onDelete: Restrict)
+  sessao             Sessao?           @relation(fields: [sessao_id], references: [id], onDelete: SetNull)
+  arquivo            Arquivo?          @relation(fields: [arquivo_id], references: [id], onDelete: SetNull)
+  anamnese           Anamnese?         @relation(fields: [anamnese_id], references: [id], onDelete: SetNull)
+  avaliacao          Avaliacao?        @relation(fields: [avaliacao_id], references: [id], onDelete: SetNull)
+  plano_terapeutico  PlanoTerapeutico? @relation(fields: [plano_terapeutico_id], references: [id], onDelete: SetNull)
+  evolucao           Evolucao?         @relation(fields: [evolucao_id], references: [id], onDelete: SetNull)
+  alta               Alta?             @relation(fields: [alta_id], references: [id], onDelete: SetNull)
+
+  @@index([clinica_id])
+  @@index([paciente_id, ocorrido_em])
+  @@index([tipo])
+  @@index([usuario_id])
+  @@index([ocorrido_em])
+  @@map("timeline_eventos")
+}
+
+// ─────────────────────────────────────────────
+// Auditoria — sem soft delete
+// ─────────────────────────────────────────────
+
+model LogAuditoria {
+  id           String         @id @default(uuid()) @db.Uuid
+  clinica_id   String         @db.Uuid
+  usuario_id   String?        @db.Uuid
+  acao         acao_auditoria
+  entidade     String
+  entidade_id  String         @db.Uuid
+  dados_antes  Json?
+  dados_depois Json?
+  ip           String?
+  user_agent   String?
+  created_at   DateTime       @default(now())
+
+  clinica Clinica  @relation(fields: [clinica_id], references: [id], onDelete: Restrict)
+  usuario Usuario? @relation(fields: [usuario_id], references: [id], onDelete: SetNull)
+
+  @@index([clinica_id])
+  @@index([usuario_id])
+  @@index([entidade, entidade_id])
+  @@index([created_at])
+  @@map("logs_auditoria")
+}

@@ -1,0 +1,15 @@
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+node_modules
+.next
+out
+dist
+coverage
+npm-debug.log*
+**/.gitkeep
+docs
+*.md
+!package.json

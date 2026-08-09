@@ -11,8 +11,8 @@
 | 5 | Pacientes | **Concluída** |
 | 6 | Timeline | **Concluída** |
 | 7 | Sessões | **Concluída** |
-| 8 | Protocolos | Pendente |
-| 9 | Prontuário | Pendente |
+| 8 | Protocolos | **Concluída** |
+| 9 | Prontuário | **Concluída** |
 | 10 | Arquivos / StorageService | Pendente |
 | 11 | ~~Agenda~~ | **Cancelada nesta versão** (histórico > agendamento) |
 | 12 | Dashboard (sem próximos agendamentos) | Pendente |
@@ -27,4 +27,6 @@
 
 ## Retomada
 
-Ponto de parada documentado em [`CONTINUIDADE.md`](../CONTINUIDADE.md) (Fase 7 validada → próxima Fase 8).
+Ponto de parada documentado em [`CONTINUIDADE.md`](../CONTINUIDADE.md) (Fase 9 entregue → aguardar validação → próxima Fase 10).
+
+Débitos fora de fase: [`docs/BACKLOG.md`](./BACKLOG.md).

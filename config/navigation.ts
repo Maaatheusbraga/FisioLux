@@ -51,7 +51,7 @@ export const navegacaoPrincipal: NavItem[] = [
     href: "/protocolos",
     icon: ClipboardList,
     permissao: "protocolos.gerenciar",
-    disponivel: false,
+    disponivel: true,
     fase: 8,
   },
   {
@@ -59,7 +59,7 @@ export const navegacaoPrincipal: NavItem[] = [
     href: "/prontuario",
     icon: FileText,
     permissao: "prontuario.acessar",
-    disponivel: false,
+    disponivel: true,
     fase: 9,
   },
   {

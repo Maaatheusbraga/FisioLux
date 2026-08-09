@@ -11,6 +11,11 @@ export type CriarEventoTimelineInput = {
   metadados?: Prisma.InputJsonValue;
   arquivoId?: string;
   sessaoId?: string;
+  anamneseId?: string;
+  avaliacaoId?: string;
+  planoTerapeuticoId?: string;
+  evolucaoId?: string;
+  altaId?: string;
 };
 
 export type ListarTimelineFiltro = {
@@ -40,6 +45,11 @@ export class TimelineRepository {
         metadados: input.metadados,
         arquivo_id: input.arquivoId,
         sessao_id: input.sessaoId,
+        anamnese_id: input.anamneseId,
+        avaliacao_id: input.avaliacaoId,
+        plano_terapeutico_id: input.planoTerapeuticoId,
+        evolucao_id: input.evolucaoId,
+        alta_id: input.altaId,
       },
     });
   }

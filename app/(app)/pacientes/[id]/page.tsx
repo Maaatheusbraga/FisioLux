@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PacienteDetalhe } from "@/features/pacientes/components/paciente-detalhe";
 import { PacienteAbas } from "@/features/pacientes/components/paciente-abas";
+import { ProntuarioPainel } from "@/features/prontuario/components/prontuario-painel";
 import { TimelineFiltros } from "@/features/timeline/components/timeline-filtros";
 import { TimelineLista } from "@/features/timeline/components/timeline-lista";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { possuiPermissao } from "@/lib/auth/permissoes";
 import { PacienteService } from "@/services/pacientes/paciente-service";
 import { TimelineService } from "@/services/timeline/timeline-service";
+import { ProntuarioService } from "@/services/prontuario/prontuario-service";
 import { listarTimelineQuerySchema } from "@/lib/validations/timeline";
 import { AppError } from "@/lib/errors/app-error";
 
@@ -25,6 +27,7 @@ export default async function PacientePage({ params, searchParams }: Props) {
     redirect("/dashboard");
   }
 
+  const podeProntuario = possuiPermissao(sessao.perfil, "prontuario.acessar");
   const { id } = await params;
   const raw = await searchParams;
   const query = listarTimelineQuerySchema.safeParse({
@@ -48,8 +51,14 @@ export default async function PacientePage({ params, searchParams }: Props) {
         aba: "timeline" as const,
       };
 
+  let aba = filtros.aba;
+  if (aba === "prontuario" && !podeProntuario) {
+    aba = "timeline";
+  }
+
   const pacienteService = new PacienteService();
   const timelineService = new TimelineService();
+  const prontuarioService = new ProntuarioService();
 
   try {
     const paciente = await pacienteService.obter(sessao, id);
@@ -57,7 +66,7 @@ export default async function PacientePage({ params, searchParams }: Props) {
     const tipos = timelineService.tiposDisponiveisParaFiltro(sessao);
 
     const timeline =
-      filtros.aba === "timeline"
+      aba === "timeline"
         ? await timelineService.listarPorPaciente(sessao, id, {
             tipo: filtros.tipo,
             profissionalId: filtros.profissional,
@@ -65,6 +74,11 @@ export default async function PacientePage({ params, searchParams }: Props) {
             ate: filtros.ate,
             page: filtros.page,
           })
+        : null;
+
+    const painel =
+      aba === "prontuario"
+        ? await prontuarioService.obterPainel(sessao, id)
         : null;
 
     const totalPages = timeline
@@ -105,7 +119,8 @@ export default async function PacientePage({ params, searchParams }: Props) {
 
         <PacienteAbas
           pacienteId={paciente.id}
-          aba={filtros.aba}
+          aba={aba}
+          mostrarProntuario={podeProntuario}
           query={{
             tipo: filtros.tipo,
             profissional: filtros.profissional,
@@ -114,7 +129,7 @@ export default async function PacientePage({ params, searchParams }: Props) {
           }}
         />
 
-        {filtros.aba === "timeline" && timeline ? (
+        {aba === "timeline" && timeline ? (
           <div className="space-y-6">
             <TimelineFiltros
               pacienteId={paciente.id}
@@ -157,9 +172,24 @@ export default async function PacientePage({ params, searchParams }: Props) {
               ) : null}
             </div>
           </div>
-        ) : (
-          <PacienteDetalhe paciente={paciente} />
-        )}
+        ) : null}
+
+        {aba === "cadastro" ? <PacienteDetalhe paciente={paciente} /> : null}
+
+        {aba === "prontuario" && painel ? (
+          <ProntuarioPainel
+            paciente={{
+              id: painel.paciente.id,
+              nome: painel.paciente.nome,
+              status: painel.paciente.status,
+            }}
+            anamneses={painel.anamneses}
+            avaliacoes={painel.avaliacoes}
+            planos={painel.planos}
+            evolucoes={painel.evolucoes}
+            altas={painel.altas}
+          />
+        ) : null}
       </div>
     );
   } catch (error) {

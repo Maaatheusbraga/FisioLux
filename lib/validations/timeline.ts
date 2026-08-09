@@ -11,5 +11,5 @@ export const listarTimelineQuerySchema = z.object({
   de: optionalDate,
   ate: optionalDate,
   page: z.coerce.number().int().min(1).optional().default(1),
-  aba: z.enum(["timeline", "cadastro"]).optional().default("timeline"),
+  aba: z.enum(["timeline", "cadastro", "prontuario"]).optional().default("timeline"),
 });

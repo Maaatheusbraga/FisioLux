@@ -18,3 +18,7 @@ Thumbs.db
 next-env.d.ts
 prisma/*.db
 prisma/*.db-journal
+
+# Material de referência do cliente (fotos WhatsApp) — só na raiz
+/AVALIAÇÃO/
+/AVALIACAO/

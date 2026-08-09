@@ -2,7 +2,7 @@
 
 Sistema de gestão clínica focado no **histórico do paciente** e na **Timeline** — para clínicas de fisioterapia.
 
-> Fase atual: **7 — Sessões** (concluída). Próxima: Protocolos.  
+> Fase atual: **9 — Prontuário** (entregue, aguardando validação). Próxima: Arquivos.  
 > **Retomar em outra máquina:** leia [CONTINUIDADE.md](./CONTINUIDADE.md) primeiro.
 
 ## Stack

@@ -13,11 +13,11 @@
 | 7 | Sessões | **Concluída** |
 | 8 | Protocolos | **Concluída** |
 | 9 | Prontuário | **Concluída** |
-| 10 | Arquivos / StorageService | Pendente |
+| 10 | Arquivos / StorageService | **Concluída** |
 | 11 | ~~Agenda~~ | **Cancelada nesta versão** (histórico > agendamento) |
-| 12 | Dashboard (sem próximos agendamentos) | Pendente |
-| 13 | Exportação PDF | Pendente |
-| — | Revisão final | Pendente |
+| 12 | Dashboard (sem próximos agendamentos) | **Concluída** |
+| 13 | Exportação PDF | **Concluída** |
+| — | Revisão final | **Concluída** |
 
 ## Ajuste de escopo (grilling)
 
@@ -27,6 +27,6 @@
 
 ## Retomada
 
-Ponto de parada documentado em [`CONTINUIDADE.md`](../CONTINUIDADE.md) (Fase 9 entregue → aguardar validação → próxima Fase 10).
+Aplicação concluída no escopo desta versão — ver [`CONTINUIDADE.md`](../CONTINUIDADE.md) e [`REVISAO-FINAL.md`](./REVISAO-FINAL.md).
 
-Débitos fora de fase: [`docs/BACKLOG.md`](./BACKLOG.md).
+Débitos residual / futuro: [`docs/BACKLOG.md`](./BACKLOG.md).

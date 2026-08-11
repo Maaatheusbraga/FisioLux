@@ -3,8 +3,24 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConfirmForm } from "@/components/ui/confirm-form";
+import { HelpTip } from "@/components/ui/help-tip";
 import { excluirSessaoAction } from "@/features/sessoes/actions";
+import { ArquivoUploadForm } from "@/features/arquivos/components/arquivo-upload-form";
+import { MidiaGaleria } from "@/features/arquivos/components/midia-galeria";
 import { formatarDataHoraBr } from "@/utils/date";
+
+type ArquivoItem = {
+  id: string;
+  categoria: string;
+  nome_original: string | null;
+  descricao: string | null;
+  mime_type: string;
+  tamanho?: number;
+  data_upload?: Date | string;
+  paciente_id?: string | null;
+  sessao_id?: string | null;
+};
 
 type Props = {
   sessao: {
@@ -19,13 +35,10 @@ type Props = {
     paciente: { id: string; nome: string };
     profissional: { id: string; nome: string };
     protocolos: { protocolo: { id: string; nome: string } }[];
-    arquivos: {
-      id: string;
-      categoria: string;
-      nome_original: string | null;
-      descricao: string | null;
-    }[];
+    arquivos: ArquivoItem[];
   };
+  categoriasUpload: { value: string; label: string }[];
+  podeUploadArquivos?: boolean;
 };
 
 function Row({ label, value }: { label: string; value?: string | null }) {
@@ -39,7 +52,20 @@ function Row({ label, value }: { label: string; value?: string | null }) {
   );
 }
 
-export function SessaoDetalhe({ sessao }: Props) {
+export function SessaoDetalhe({
+  sessao,
+  categoriasUpload,
+  podeUploadArquivos = false,
+}: Props) {
+  const redirectTo = `/sessoes/${sessao.id}`;
+  const arquivosLista = sessao.arquivos.map((a) => ({
+    ...a,
+    tamanho: a.tamanho ?? 0,
+    data_upload: a.data_upload ?? sessao.realizado_em,
+    paciente_id: a.paciente_id ?? sessao.paciente_id,
+    sessao_id: a.sessao_id ?? sessao.id,
+  }));
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-2">
@@ -81,21 +107,39 @@ export function SessaoDetalhe({ sessao }: Props) {
         </dl>
       </section>
 
-      <section className="rounded-xl border border-dashed border-border bg-surface/40 p-5">
-        <h2 className="text-sm font-semibold text-ink">Anexos da sessão</h2>
-        {sessao.arquivos.length === 0 ? (
-          <p className="mt-2 text-sm text-ink-muted">
-            Nenhum arquivo vinculado. Upload de fotos/vídeos na Fase 10.
-          </p>
-        ) : (
-          <ul className="mt-3 space-y-2 text-sm">
-            {sessao.arquivos.map((a) => (
-              <li key={a.id} className="text-ink-muted">
-                {a.nome_original || a.descricao || a.categoria}
-              </li>
-            ))}
-          </ul>
-        )}
+      <section className="space-y-4 rounded-xl border border-border bg-surface-raised p-5">
+        <div className="flex items-center gap-1.5">
+          <h2 className="text-sm font-semibold text-ink">
+            Fotos e vídeos do atendimento
+          </h2>
+          <HelpTip label="Sobre mídia do atendimento">
+            Registre a mídia deste atendimento. Na próxima visita, esta pode
+            virar o “antes” na timeline de fotos do paciente.
+          </HelpTip>
+        </div>
+        <MidiaGaleria
+          midias={arquivosLista}
+          pacienteId={sessao.paciente_id}
+          redirectTo={redirectTo}
+          emptyHint="Adicione uma ou mais fotos/vídeos neste atendimento."
+        />
+        {podeUploadArquivos && categoriasUpload.length > 0 ? (
+          <div className="border-t border-border pt-4">
+            <h3 className="mb-3 text-sm font-medium text-ink">
+              Adicionar fotos ou vídeos
+            </h3>
+            <ArquivoUploadForm
+              categorias={categoriasUpload}
+              pacienteFixo={{
+                id: sessao.paciente.id,
+                nome: sessao.paciente.nome,
+              }}
+              sessaoId={sessao.id}
+              redirectTo={redirectTo}
+              modo="midia"
+            />
+          </div>
+        ) : null}
       </section>
 
       <div className="flex flex-wrap gap-3 border-t border-border pt-6">
@@ -107,21 +151,19 @@ export function SessaoDetalhe({ sessao }: Props) {
             Ver Timeline do paciente
           </Button>
         </Link>
-        <form
+        <ConfirmForm
           action={excluirSessaoAction}
           className="sm:ml-auto"
-          onSubmit={(e) => {
-            if (!confirm("Excluir logicamente esta sessão?")) {
-              e.preventDefault();
-            }
-          }}
+          title="Excluir sessão"
+          message="Excluir logicamente esta sessão?"
+          confirmLabel="Excluir"
         >
           <input type="hidden" name="id" value={sessao.id} />
           <input type="hidden" name="paciente_id" value={sessao.paciente_id} />
           <Button type="submit" variant="danger">
             Excluir
           </Button>
-        </form>
+        </ConfirmForm>
       </div>
     </div>
   );

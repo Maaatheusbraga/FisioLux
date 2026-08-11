@@ -5,8 +5,10 @@ import { LogOut, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Breadcrumb } from "@/components/layout/breadcrumb";
+import { HeaderSearch } from "@/components/layout/header-search";
 import { SidebarNav } from "@/components/layout/sidebar-nav";
 import { logoutAction } from "@/features/auth/actions";
+import { possuiPermissao } from "@/lib/auth/permissoes";
 import type { PerfilUsuario } from "@/types/dominio";
 import { cn } from "@/utils/cn";
 
@@ -33,7 +35,11 @@ export function AppHeader({ nome, email, perfil }: Props) {
           <Menu className="h-5 w-5" />
         </Button>
 
-        <Breadcrumb className="min-w-0 flex-1" />
+        <Breadcrumb className="min-w-0 shrink" />
+
+        {possuiPermissao(perfil, "pacientes.gerenciar") ? (
+          <HeaderSearch />
+        ) : null}
 
         <div className="ml-auto flex items-center gap-1 sm:gap-2">
           <ThemeToggle />

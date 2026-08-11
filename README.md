@@ -2,8 +2,8 @@
 
 Sistema de gestão clínica focado no **histórico do paciente** e na **Timeline** — para clínicas de fisioterapia.
 
-> Fase atual: **9 — Prontuário** (entregue, aguardando validação). Próxima: Arquivos.  
-> **Retomar em outra máquina:** leia [CONTINUIDADE.md](./CONTINUIDADE.md) primeiro.
+> Fase atual: **aplicação concluída** (fases 1–10, 12, 13 + revisão).  
+> **Retomar / contexto:** [CONTINUIDADE.md](./CONTINUIDADE.md) · [docs/REVISAO-FINAL.md](./docs/REVISAO-FINAL.md)
 
 ## Stack
 
@@ -17,6 +17,7 @@ Sistema de gestão clínica focado no **histórico do paciente** e na **Timeline
 | Doc | Conteúdo |
 | --- | --- |
 | [CONTINUIDADE.md](./CONTINUIDADE.md) | **Retomar o projeto** (contexto + ponto de parada) |
+| [docs/REVISAO-FINAL.md](./docs/REVISAO-FINAL.md) | Encerramento desta versão |
 | [CONTEXT.md](./CONTEXT.md) | Glossário de domínio |
 | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | Visão arquitetural |
 | [docs/DATABASE.md](./docs/DATABASE.md) | Schema, migrations, RLS, seed |
@@ -43,9 +44,17 @@ npm run dev
 
 Abra `http://localhost:3000/login`.
 
-## Banco de dados
+## Deploy (VPS + Docker)
 
-Detalhes: [docs/DATABASE.md](./docs/DATABASE.md).
+Detalhes: [docs/DOCKER.md](./docs/DOCKER.md).
+
+```bash
+cp .env.example .env   # preencher Supabase + APP_URL da VPS
+docker compose build
+docker compose up -d
+```
+
+Banco/Auth/Storage ficam no **Supabase Cloud**; a VPS só roda a app.
 
 ## Escopo desta versão
 

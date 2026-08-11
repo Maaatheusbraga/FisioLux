@@ -46,7 +46,7 @@ export default async function ProtocolosPage({ searchParams }: Props) {
     <div>
       <PageHeader
         title="Protocolos"
-        description="Modelos terapêuticos reutilizáveis da clínica."
+        help="Modelos terapêuticos reutilizáveis para vincular nos atendimentos."
         actions={
           <Link href="/protocolos/novo">
             <Button type="button">Novo protocolo</Button>

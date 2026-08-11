@@ -1,141 +1,80 @@
 # Continuidade FisioLux — retomar exatamente daqui
 
-> **Para o próximo Cursor / outra máquina:** leia este arquivo **primeiro**, depois `docs/PHASES.md`, `PRODUCT.md`, `CONTEXT.md` e `docs/ARCHITECTURE.md`.  
-> **Última atualização:** 2026-08-09  
-> **Ponto de parada:** Fase **9 — Prontuário** entregue (aguardando validação). **Próxima:** Fase **10 — Arquivos** (só após “pode seguir”).
+> **Última atualização:** 2026-08-11  
+> **Status:** aplicação **concluída** no escopo desta versão (fases 1–10, 12, 13 + revisão). Agenda (11) cancelada.
 
 ---
 
-## 1. O que é o produto (em uma frase)
+## 1. Produto
 
-Sistema web de gestão para clínicas de fisioterapia com a **Timeline do paciente no centro**. Sessões = registro clínico do que foi feito, **não** agenda/calendário.
+Sistema web de gestão para clínicas de fisioterapia com a **Timeline do paciente no centro**. Sessões = registro clínico (não agenda).
 
 ## 2. Onde paramos
 
 | Item | Status |
 | --- | --- |
-| Fases 1–8 | **Concluídas e validadas pelo usuário** |
-| Fase 9 (Prontuário) | **Entregue** — aguardar validação |
-| Fase 10 (Arquivos) | **Próxima** — aguardar “pode seguir” após validar a 9 |
-| Agenda (antiga Fase 11) | **Cancelada** nesta versão |
+| Fases 1–10, 12, 13 | **Concluídas** |
+| Revisão final | **Concluída** — `docs/REVISAO-FINAL.md` |
+| Agenda | **Cancelada** |
+| Usuários / Configurações (UI) | **Entregues** |
 
-## 2.1 Tarefas / débitos (fora da fase atual)
+## 3. Stack e infra
 
-| Tarefa | Status | Notas |
-| --- | --- | --- |
-| Ajustar os pop-ups da aplicação | Pendente | BL-001 — `confirm()` nativo |
-| Avaliação musculoesquelética estruturada | **Feito** | BL-002 — ficha em `dados_complementares`; prioridade sobre anamnese |
+- Next.js 15 · React 19 · Prisma 6 · Supabase (Auth + Postgres + Storage)
+- Repo: https://github.com/Maaatheusbraga/FisioLux.git
+- Supabase: `ahihcqxxjyjfnhyrllcs` · bucket `fisiolux`
+- Segredos só em `.env` (nunca no Git)
 
-**Regra de processo:** é proibido iniciar uma fase sem a anterior estar concluída e **autorizada**. Ao fim de cada fase: entregar resumo e esperar o “pode seguir”.
-
-## 3. Decisões de produto (grilling) — não reabrir sem pedido
-
-1. Multi-tenant **sem billing**; usuário ∈ **1 clínica**
-2. Stack: Next.js 15 + React 19 + TS + Tailwind + Prisma 6 + Postgres (Supabase) + Supabase Auth
-3. Clean Architecture: UI → Services → Repositories → Prisma
-4. Tabelas/colunas em **português** (`snake_case`)
-5. Soft delete no clínico; Timeline/auditoria permanecem
-6. Timeline via `TimelineService` **na mesma transação** da ação
-7. Recepção = cadastro (sem prontuário/timeline clínica completa)
-8. Fisioterapeuta vê todos os pacientes da clínica
-9. Admin = gestão + clínico
-10. CPF obrigatório, único **por clínica**
-11. Arquivos: soft delete → pasta `lixeira/`; upload = Fase 10
-12. Categorias de arquivo fixas + `documento`
-13. Alta = status do paciente + evento na Timeline
-14. Dark mode padrão (+ light)
-15. **Agenda fora do escopo**
-16. Dashboard sem “próximos agendamentos”
-17. **Avaliação > Anamnese** — a ficha pedida pelo cliente é a **Avaliação musculoesquelética** (`AVALIAÇÃO/`). Onde houver sobreposição com anamnese, a **Avaliação é a prioridade de produto/UI**. Anamnese permanece no schema/prontuário como módulo secundário (não compete pelo mesmo fluxo principal). Plano e Evolução continuam entidades separadas (não embutir no formulário de avaliação).
-
-## 4. Infra já existente (não recriar do zero)
-
-- Repositório GitHub: https://github.com/Maaatheusbraga/FisioLux.git
-- Projeto Supabase (região São Paulo): ref `ahihcqxxjyjfnhyrllcs`
-- Auth URLs (dev): Site `http://localhost:3000`, redirect `http://localhost:3000/callback/**`
-- Em redes **só IPv4**: Session pooler `:5432` no `DIRECT_URL` e Transaction `:6543` no `DATABASE_URL`
-- Migrations + seed + `auth:bootstrap-admin` já rodaram; `npm run dev` é o fluxo local
-
-**Segredos:** `.env` **nunca** vai no Git.
-
-## 5. Como subir o projeto em outra máquina
+## 4. Setup
 
 ```bash
 git clone https://github.com/Maaatheusbraga/FisioLux.git
 cd FisioLux
 cp .env.example .env
-# Preencher Supabase
 npm install
 npm run db:migrate
 npm run dev
 ```
 
-> Continue o FisioLux a partir de `CONTINUIDADE.md`. Fases 1–9 (validar 9 se pendente). Próxima é a Fase 10 — Arquivos. Não pule fases.
+## 5. Mapa de módulos
 
-## 6. O que a Fase 9 entregou (contexto útil)
-
-- Aba **Prontuário** na ficha do paciente + menu `/prontuario` (busca)
-- Anamnese, avaliação (inicial/periódica), plano, evolução (opcional vínculo a sessão), alta + reabertura
-- Soft delete nos registros (alta não soft-deleta — reabre)
-- Timeline na mesma transação; FKs de prontuário no evento
-- Permissão: `prontuario.acessar` (admin + fisioterapeuta; **não** recepção)
-- Doc: `docs/FASE-9.md`
-
-Arquivos-chave:
-
-- `repositories/prontuario/prontuario-repository.ts`
-- `services/prontuario/prontuario-service.ts`
-- `features/prontuario/*`
-- `app/(app)/pacientes/[id]/prontuario/**`
-- `app/(app)/prontuario/page.tsx`
-
-## 7. Próxima fase — 10 Arquivos (escopo esperado)
-
-Upload/metadados via StorageService (fotos, vídeos, categorias fixas, soft delete → `lixeira/`). Ver `docs/STORAGE.md`.
-
-**Antes de codar a Fase 10:** só após o usuário validar a Fase 9 e autorizar.
-
-## 8. Mapa rápido das próximas fases
-
-| Fase | Foco |
+| Área | Onde |
 | --- | --- |
-| 10 | Arquivos / StorageService |
-| 11 | ~~Agenda~~ cancelada |
-| 12 | Dashboard (sem próximos agendamentos) |
-| 13 | Exportação PDF |
-| — | Revisão final |
+| Início | `/dashboard` |
+| Pacientes + Timeline | `/pacientes` |
+| Atendimentos (ex-Sessões) | `/sessoes` |
+| Protocolos | `/protocolos` |
+| Prontuário | aba na ficha do paciente (`?aba=prontuario`) |
+| Documentos | `/arquivos` + aba Documentos na ficha |
+| Fotos/vídeos | aba Fotos + atendimento |
+| PDF clínico | botão na ficha → `/pacientes/[id]/exportar` |
+| Busca | header → `/pacientes?q=` |
+| Usuários | `/usuarios` |
+| Configurações | `/configuracoes` |
 
-## 9. Arquitetura e docs de referência
+## 6. Docs
 
-| Doc | Uso |
-| --- | --- |
-| `CONTINUIDADE.md` (este) | Ponto de retomada |
-| `docs/PHASES.md` | Status das fases |
-| `docs/BACKLOG.md` | Débitos (ex.: pop-ups) |
-| `docs/FASE-1.md` … `docs/FASE-9.md` | Entregas por fase |
-| `docs/STORAGE.md` | Storage (Fase 10) |
-| `docs/adr/` | Decisões (ex.: ADR 011 alta) |
+`docs/PHASES.md`, `docs/FASE-*.md`, `docs/REVISAO-FINAL.md`, `docs/BACKLOG.md`, `PRODUCT.md`, `CONTEXT.md`.
 
-## 10. Padrões de código que o agent deve manter
+## 7. UX (anti-confusão)
 
-- Português nas tabelas/colunas e na UI
-- Services com `assertPermissao`; repositories sem regra de negócio pesada
-- Toda ação clínica relevante → `TimelineService.registrar` na **mesma** `prisma.$transaction`
-- Server Actions: rethrow `NEXT_REDIRECT` no `catch`
-- Soft delete (`deleted_at`), não hard delete clínico
-- UI: tokens OKLCH / shell existente
-- Respostas ao usuário em **português**
-- Commits só se o usuário pedir; não commitar `.env`
+- Menu enxuto: Início, Pacientes, Atendimentos, Protocolos, Documentos, Usuários, Configurações
+- Jobs: Timeline = histórico · Atendimento = dia · Prontuário = clínico estruturado · Documentos ≠ Fotos
+- PDF = clínico sem anexos/mídia
+- Pós-criação de usuário: instrução de login
 
-## 11. Checklist mental ao reabrir o chat
+## 8. Evoluções futuras (opcional)
 
-1. Ler `CONTINUIDADE.md`
-2. Confirmar `docs/PHASES.md` (Fase 9 entregue; 10 pendente de autorização)
-3. Confirmar `.env` local e `npm run dev`
-4. Conferir `docs/BACKLOG.md` se for tratar débito
-5. Propor / implementar **somente Fase 10** após o usuário autorizar
-6. Ao terminar: `docs/FASE-10.md` + atualizar docs + aguardar validação
+- Envio WhatsApp nativo do comparador
+- Job de purga da lixeira
+- Dashboard com “sem atendimento há X dias”
+- Nginx + HTTPS na VPS
+
+## 9. Deploy
+
+- Docker pronto: `Dockerfile`, `docker-compose.yml`, `docs/DOCKER.md`
+- Subir na VPS: ver `docs/DOCKER.md`
 
 ---
 
-*Atualizado ao entregar a Fase 9, antes da validação e da Fase 10.*
+*Gerado ao concluir a aplicação nesta versão.*

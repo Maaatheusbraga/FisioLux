@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { PacienteDetalhe } from "@/features/pacientes/components/paciente-detalhe";
 import { PacienteAbas } from "@/features/pacientes/components/paciente-abas";
 import { ProntuarioPainel } from "@/features/prontuario/components/prontuario-painel";
+import { PacienteArquivosPainel } from "@/features/arquivos/components/paciente-arquivos-painel";
+import { PacienteFotosPainel } from "@/features/arquivos/components/paciente-fotos-painel";
 import { TimelineFiltros } from "@/features/timeline/components/timeline-filtros";
 import { TimelineLista } from "@/features/timeline/components/timeline-lista";
 import { exigirSessao } from "@/lib/auth/sessao";
@@ -13,6 +15,7 @@ import { possuiPermissao } from "@/lib/auth/permissoes";
 import { PacienteService } from "@/services/pacientes/paciente-service";
 import { TimelineService } from "@/services/timeline/timeline-service";
 import { ProntuarioService } from "@/services/prontuario/prontuario-service";
+import { ArquivoService } from "@/services/arquivos/arquivo-service";
 import { listarTimelineQuerySchema } from "@/lib/validations/timeline";
 import { AppError } from "@/lib/errors/app-error";
 
@@ -28,6 +31,10 @@ export default async function PacientePage({ params, searchParams }: Props) {
   }
 
   const podeProntuario = possuiPermissao(sessao.perfil, "prontuario.acessar");
+  const podeArquivos =
+    possuiPermissao(sessao.perfil, "arquivos.cadastrais") ||
+    possuiPermissao(sessao.perfil, "arquivos.clinicos");
+  const podeFotos = possuiPermissao(sessao.perfil, "arquivos.clinicos");
   const { id } = await params;
   const raw = await searchParams;
   const query = listarTimelineQuerySchema.safeParse({
@@ -55,10 +62,17 @@ export default async function PacientePage({ params, searchParams }: Props) {
   if (aba === "prontuario" && !podeProntuario) {
     aba = "timeline";
   }
+  if (aba === "arquivos" && !podeArquivos) {
+    aba = "timeline";
+  }
+  if (aba === "fotos" && !podeFotos) {
+    aba = "timeline";
+  }
 
   const pacienteService = new PacienteService();
   const timelineService = new TimelineService();
   const prontuarioService = new ProntuarioService();
+  const arquivoService = new ArquivoService();
 
   try {
     const paciente = await pacienteService.obter(sessao, id);
@@ -81,6 +95,36 @@ export default async function PacientePage({ params, searchParams }: Props) {
         ? await prontuarioService.obterPainel(sessao, id)
         : null;
 
+    const arquivosResult =
+      aba === "arquivos"
+        ? await arquivoService.listar(sessao, {
+            pacienteId: id,
+            escopo: "documentos",
+            page: 1,
+            pageSize: 50,
+          })
+        : null;
+
+    const fotosResult =
+      aba === "fotos"
+        ? await arquivoService.listar(sessao, {
+            pacienteId: id,
+            escopo: "midia",
+            page: 1,
+            pageSize: 50,
+          })
+        : null;
+
+    const categoriasDocs =
+      aba === "arquivos"
+        ? arquivoService.categoriasDisponiveisParaUpload(sessao, "documentos")
+        : [];
+
+    const categoriasMidia =
+      aba === "fotos"
+        ? arquivoService.categoriasDisponiveisParaUpload(sessao, "midia")
+        : [];
+
     const totalPages = timeline
       ? Math.max(1, Math.ceil(timeline.total / timeline.pageSize))
       : 1;
@@ -89,7 +133,14 @@ export default async function PacientePage({ params, searchParams }: Props) {
       <div>
         <PageHeader
           title={paciente.nome}
-          description="Histórico clínico em Timeline — o centro do FisioLux."
+          help={
+            <>
+              Timeline = histórico automático. Atendimento do dia = botão
+              &quot;Registrar atendimento&quot;. Texto clínico estruturado = aba
+              Prontuário. PDF clínico exporta registros (sem fotos nem
+              documentos anexos).
+            </>
+          }
           actions={
             <div className="flex flex-wrap gap-2">
               <Badge
@@ -103,15 +154,25 @@ export default async function PacientePage({ params, searchParams }: Props) {
               </Badge>
               <Link href={`/pacientes/${paciente.id}/editar`}>
                 <Button type="button" variant="secondary" size="sm">
-                  Editar cadastro
+                  Editar dados
                 </Button>
               </Link>
               {possuiPermissao(sessao.perfil, "sessoes.gerenciar") ? (
                 <Link href={`/sessoes/nova?paciente=${paciente.id}`}>
                   <Button type="button" size="sm">
-                    Nova sessão
+                    Registrar atendimento
                   </Button>
                 </Link>
+              ) : null}
+              {possuiPermissao(sessao.perfil, "exportacao.clinica") ? (
+                <a
+                  href={`/pacientes/${paciente.id}/exportar`}
+                  title="Anamnese, avaliações, planos, evoluções, altas e atendimentos recentes — sem fotos nem documentos anexos"
+                >
+                  <Button type="button" variant="secondary" size="sm">
+                    PDF clínico
+                  </Button>
+                </a>
               ) : null}
             </div>
           }
@@ -121,6 +182,8 @@ export default async function PacientePage({ params, searchParams }: Props) {
           pacienteId={paciente.id}
           aba={aba}
           mostrarProntuario={podeProntuario}
+          mostrarArquivos={podeArquivos}
+          mostrarFotos={podeFotos}
           query={{
             tipo: filtros.tipo,
             profissional: filtros.profissional,
@@ -141,7 +204,43 @@ export default async function PacientePage({ params, searchParams }: Props) {
               ate={filtros.ate}
             />
 
-            <TimelineLista eventos={timeline.items} />
+            <TimelineLista
+              eventos={timeline.items}
+              emptyHint={
+                filtros.tipo !== "todos" ||
+                filtros.profissional !== "todos" ||
+                filtros.de ||
+                filtros.ate
+                  ? "Nenhum evento com esses filtros. Limpe os filtros ou registre um atendimento."
+                  : undefined
+              }
+              emptyCtas={
+                filtros.tipo === "todos" &&
+                filtros.profissional === "todos" &&
+                !filtros.de &&
+                !filtros.ate
+                  ? [
+                      ...(possuiPermissao(sessao.perfil, "sessoes.gerenciar")
+                        ? [
+                            {
+                              href: `/sessoes/nova?paciente=${paciente.id}`,
+                              label: "Registrar atendimento",
+                            },
+                          ]
+                        : []),
+                      ...(podeProntuario
+                        ? [
+                            {
+                              href: `/pacientes/${paciente.id}?aba=prontuario`,
+                              label: "Abrir prontuário",
+                              variant: "secondary" as const,
+                            },
+                          ]
+                        : []),
+                    ]
+                  : undefined
+              }
+            />
 
             <div className="flex items-center justify-between text-sm text-ink-muted">
               <p>
@@ -188,6 +287,22 @@ export default async function PacientePage({ params, searchParams }: Props) {
             planos={painel.planos}
             evolucoes={painel.evolucoes}
             altas={painel.altas}
+          />
+        ) : null}
+
+        {aba === "arquivos" && arquivosResult ? (
+          <PacienteArquivosPainel
+            paciente={{ id: paciente.id, nome: paciente.nome }}
+            categorias={categoriasDocs}
+            arquivos={arquivosResult.items}
+          />
+        ) : null}
+
+        {aba === "fotos" && fotosResult ? (
+          <PacienteFotosPainel
+            paciente={{ id: paciente.id, nome: paciente.nome }}
+            categorias={categoriasMidia}
+            midias={fotosResult.items}
           />
         ) : null}
       </div>

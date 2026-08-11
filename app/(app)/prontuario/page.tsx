@@ -14,13 +14,9 @@ export default async function ProntuarioPage() {
     <div>
       <PageHeader
         title="Prontuário"
-        description="Anamnese, avaliações, plano, evoluções e alta — abra o paciente."
+        help="O prontuário vive na ficha do paciente. Preferência: abra em Pacientes e use a aba Prontuário. Esta página só ajuda a encontrar o paciente."
       />
       <div className="max-w-2xl rounded-xl border border-border bg-surface-raised p-6">
-        <p className="mb-4 text-sm text-ink-muted">
-          O prontuário vive na ficha do paciente. Busque para abrir a aba
-          Prontuário.
-        </p>
         <ProntuarioPacienteBusca />
       </div>
     </div>

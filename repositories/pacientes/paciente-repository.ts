@@ -129,9 +129,62 @@ export class PacienteRepository {
     if (!existente) {
       throw new Error("Paciente não encontrado.");
     }
+
+    const agora = new Date();
+
+    await tx.sessao.updateMany({
+      where: { clinica_id: clinicaId, paciente_id: id, deleted_at: null },
+      data: { deleted_at: agora, status: "cancelada" },
+    });
+    await tx.anamnese.updateMany({
+      where: { clinica_id: clinicaId, paciente_id: id, deleted_at: null },
+      data: { deleted_at: agora },
+    });
+    await tx.avaliacao.updateMany({
+      where: { clinica_id: clinicaId, paciente_id: id, deleted_at: null },
+      data: { deleted_at: agora },
+    });
+    await tx.planoTerapeutico.updateMany({
+      where: { clinica_id: clinicaId, paciente_id: id, deleted_at: null },
+      data: { deleted_at: agora },
+    });
+    await tx.evolucao.updateMany({
+      where: { clinica_id: clinicaId, paciente_id: id, deleted_at: null },
+      data: { deleted_at: agora },
+    });
+    await tx.arquivo.updateMany({
+      where: { clinica_id: clinicaId, paciente_id: id, deleted_at: null },
+      data: { deleted_at: agora },
+    });
+
     return tx.paciente.update({
       where: { id },
-      data: { deleted_at: new Date() },
+      data: { deleted_at: agora },
+    });
+  }
+
+  /** Arquivos ainda ativos do paciente (antes do soft-delete em cascata). */
+  async listarArquivosAtivos(
+    clinicaId: string,
+    pacienteId: string,
+  ): Promise<{ id: string; storage_key: string }[]> {
+    return prisma.arquivo.findMany({
+      where: {
+        clinica_id: clinicaId,
+        paciente_id: pacienteId,
+        deleted_at: null,
+      },
+      select: { id: true, storage_key: true },
+    });
+  }
+
+  async atualizarStorageKey(
+    id: string,
+    storageKey: string,
+  ): Promise<void> {
+    await prisma.arquivo.update({
+      where: { id },
+      data: { storage_key: storageKey },
     });
   }
 }

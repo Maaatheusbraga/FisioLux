@@ -4,8 +4,9 @@ import Link from "next/link";
 import type { Paciente } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConfirmForm } from "@/components/ui/confirm-form";
 import { excluirPacienteAction } from "@/features/pacientes/actions";
-import { formatarCpf, formatarTelefoneExibicao } from "@/utils/cpf";
+import { formatarCpf, formatarRgExibicao, formatarTelefoneExibicao } from "@/utils/cpf";
 import { calcularIdade, formatarDataBr } from "@/utils/date";
 
 type Props = {
@@ -46,7 +47,7 @@ export function PacienteDetalhe({ paciente }: Props) {
           <h2 className="text-sm font-semibold text-ink">Cadastro</h2>
           <dl className="mt-2">
             <Row label="CPF" value={formatarCpf(paciente.cpf)} />
-            <Row label="RG" value={paciente.rg} />
+            <Row label="RG" value={formatarRgExibicao(paciente.rg)} />
             <Row label="Sexo" value={paciente.sexo.replaceAll("_", " ")} />
             <Row label="Telefone" value={formatarTelefoneExibicao(paciente.telefone)} />
             <Row label="WhatsApp" value={formatarTelefoneExibicao(paciente.whatsapp)} />
@@ -94,24 +95,18 @@ export function PacienteDetalhe({ paciente }: Props) {
             Voltar à lista
           </Button>
         </Link>
-        <form
+        <ConfirmForm
           action={excluirPacienteAction}
           className="sm:ml-auto"
-          onSubmit={(e) => {
-            if (
-              !confirm(
-                `Excluir logicamente o paciente ${paciente.nome}? O histórico permanece.`,
-              )
-            ) {
-              e.preventDefault();
-            }
-          }}
+          title="Excluir paciente"
+          message={`Excluir ${paciente.nome}? Cadastro, atendimentos, prontuário e arquivos serão removidos da clínica (exclusão lógica). A Timeline de exclusão permanece para auditoria.`}
+          confirmLabel="Excluir tudo"
         >
           <input type="hidden" name="id" value={paciente.id} />
           <Button type="submit" variant="danger">
             Excluir
           </Button>
-        </form>
+        </ConfirmForm>
       </div>
     </div>
   );

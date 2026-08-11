@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConfirmForm } from "@/components/ui/confirm-form";
+import { HelpTip } from "@/components/ui/help-tip";
 import {
   excluirAnamneseAction,
   excluirAvaliacaoAction,
@@ -115,20 +117,18 @@ function ItemRow({
           </Button>
         </Link>
         {onExcluir ? (
-          <form
+          <ConfirmForm
             action={onExcluir.action}
-            onSubmit={(e) => {
-              if (!confirm("Excluir logicamente este registro?")) {
-                e.preventDefault();
-              }
-            }}
+            title="Excluir registro"
+            message="Excluir logicamente este registro?"
+            confirmLabel="Excluir"
           >
             <input type="hidden" name="id" value={onExcluir.id} />
             <input type="hidden" name="paciente_id" value={onExcluir.pacienteId} />
             <Button type="submit" size="sm" variant="ghost" className="text-danger">
               Excluir
             </Button>
-          </form>
+          </ConfirmForm>
         ) : null}
       </div>
     </div>
@@ -162,6 +162,11 @@ export function ProntuarioPainel({
           <span className="text-sm text-ink-muted">
             Prontuário clínico · {paciente.nome}
           </span>
+          <HelpTip label="Sobre o prontuário">
+            Registros clínicos estruturados (avaliação, plano, evolução, alta).
+            O atendimento do dia (procedimentos) fica em Atendimentos; o
+            histórico automático fica na Timeline.
+          </HelpTip>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href={`${base}/avaliacao/nova`}>
@@ -170,19 +175,18 @@ export function ProntuarioPainel({
             </Button>
           </Link>
           {emAlta ? (
-            <form
+            <ConfirmForm
               action={reabrirTratamentoAction}
-              onSubmit={(e) => {
-                if (!confirm("Reabrir o tratamento deste paciente?")) {
-                  e.preventDefault();
-                }
-              }}
+              title="Reabrir tratamento"
+              message="Reabrir o tratamento deste paciente?"
+              confirmLabel="Reabrir"
+              danger={false}
             >
               <input type="hidden" name="paciente_id" value={paciente.id} />
               <Button type="submit" size="sm" variant="secondary">
                 Reabrir tratamento
               </Button>
-            </form>
+            </ConfirmForm>
           ) : (
             <Link href={`${base}/alta/nova`}>
               <Button type="button" size="sm" variant="secondary">

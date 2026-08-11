@@ -1,13 +1,20 @@
 import Link from "next/link";
 import { cn } from "@/utils/cn";
 
-export type PacienteAba = "timeline" | "cadastro" | "prontuario";
+export type PacienteAba =
+  | "timeline"
+  | "cadastro"
+  | "prontuario"
+  | "arquivos"
+  | "fotos";
 
 type Props = {
   pacienteId: string;
   aba: PacienteAba;
   query?: Record<string, string | undefined>;
   mostrarProntuario?: boolean;
+  mostrarArquivos?: boolean;
+  mostrarFotos?: boolean;
 };
 
 export function PacienteAbas({
@@ -15,6 +22,8 @@ export function PacienteAbas({
   aba,
   query = {},
   mostrarProntuario = false,
+  mostrarArquivos = false,
+  mostrarFotos = false,
 }: Props) {
   const base = `/pacientes/${pacienteId}`;
   const qs = new URLSearchParams();
@@ -30,10 +39,14 @@ export function PacienteAbas({
 
   const abas: { id: PacienteAba; label: string }[] = [
     { id: "timeline", label: "Timeline" },
-    { id: "cadastro", label: "Cadastro" },
+    { id: "cadastro", label: "Dados" },
     ...(mostrarProntuario
       ? [{ id: "prontuario" as const, label: "Prontuário" }]
       : []),
+    ...(mostrarArquivos
+      ? [{ id: "arquivos" as const, label: "Documentos" }]
+      : []),
+    ...(mostrarFotos ? [{ id: "fotos" as const, label: "Fotos" }] : []),
   ];
 
   return (

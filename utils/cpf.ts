@@ -61,3 +61,53 @@ export function formatarRg(rg: string | null | undefined): string {
     .replace(/(\d{3})(\d)/, "$1.$2")
     .replace(/(\d{3})([\dX])$/, "$1-$2");
 }
+
+/** Formata CNPJ: 00.000.000/0000-00 */
+export function formatarCnpj(cnpj: string | null | undefined): string {
+  if (cnpj == null || cnpj === "") return "";
+  const d = apenasDigitos(cnpj).slice(0, 14);
+  return d
+    .replace(/(\d{2})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1/$2")
+    .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+}
+
+export function formatarCnpjExibicao(
+  cnpj: string | null | undefined,
+): string {
+  return formatarCnpj(cnpj) || "—";
+}
+
+export function formatarRgExibicao(rg: string | null | undefined): string {
+  return formatarRg(rg) || "—";
+}
+
+export type TipoMascara = "cpf" | "rg" | "telefone" | "cnpj";
+
+export function aplicarMascara(tipo: TipoMascara, valor: string): string {
+  switch (tipo) {
+    case "cpf":
+      return formatarCpf(valor);
+    case "rg":
+      return formatarRg(valor);
+    case "telefone":
+      return formatarTelefone(valor);
+    case "cnpj":
+      return formatarCnpj(valor);
+  }
+}
+
+export const PLACEHOLDER_MASCARA: Record<TipoMascara, string> = {
+  cpf: "000.000.000-00",
+  rg: "00.000.000-0",
+  telefone: "(00) 00000-0000",
+  cnpj: "00.000.000/0000-00",
+};
+
+export const MAX_LENGTH_MASCARA: Record<TipoMascara, number> = {
+  cpf: 14,
+  rg: 12,
+  telefone: 15,
+  cnpj: 18,
+};

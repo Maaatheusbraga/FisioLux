@@ -7,8 +7,10 @@ import { navegacaoPrincipal } from "@/config/navigation";
 import { cn } from "@/utils/cn";
 
 const titulosExtras: Record<string, string> = {
-  "/dashboard": "Dashboard",
+  "/dashboard": "Início",
   "/login": "Entrar",
+  "/busca": "Busca",
+  "/prontuario": "Prontuário",
 };
 
 export function Breadcrumb({ className }: { className?: string }) {

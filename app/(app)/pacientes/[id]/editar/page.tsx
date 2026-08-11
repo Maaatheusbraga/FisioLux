@@ -23,10 +23,7 @@ export default async function EditarPacientePage({ params }: Props) {
     const paciente = await service.obter(sessao, id);
     return (
       <div>
-        <PageHeader
-          title={`Editar · ${paciente.nome}`}
-          description="Atualize os dados cadastrais do paciente."
-        />
+        <PageHeader title={`Editar · ${paciente.nome}`} />
         <div className="max-w-4xl rounded-xl border border-border bg-surface-raised p-6">
           <PacienteForm paciente={paciente} />
         </div>

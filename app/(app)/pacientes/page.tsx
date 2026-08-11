@@ -43,7 +43,7 @@ export default async function PacientesPage({ searchParams }: Props) {
     <div>
       <PageHeader
         title="Pacientes"
-        description="Cadastro e histórico cadastral dos pacientes da clínica."
+        help="Cadastro e ficha clínica. A Timeline do paciente é o centro do histórico."
         actions={
           <Link href="/pacientes/novo">
             <Button type="button">Novo paciente</Button>

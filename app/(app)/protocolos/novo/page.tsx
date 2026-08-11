@@ -14,7 +14,7 @@ export default async function NovoProtocoloPage() {
     <div>
       <PageHeader
         title="Novo protocolo"
-        description="Cadastre um modelo reutilizável para vincular nas sessões."
+        help="Modelo reutilizável para vincular nos atendimentos."
       />
       <div className="max-w-3xl rounded-xl border border-border bg-surface-raised p-6">
         <ProtocoloForm />

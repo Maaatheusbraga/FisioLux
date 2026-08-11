@@ -76,4 +76,8 @@ interface StorageService {
 
 ## Implementação de código
 
-**Fase 10** (contrato e pastas já reservados em `services/storage` e `lib/storage`).
+**Fase 10 concluída** — ver `docs/FASE-10.md`.
+
+- `SupabaseStorageService` em `lib/storage/supabase-storage.ts`
+- Factory `getStorageService()` em `lib/storage/index.ts`
+- Domínio: `services/arquivos/arquivo-service.ts`

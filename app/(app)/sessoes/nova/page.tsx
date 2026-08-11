@@ -37,8 +37,14 @@ export default async function NovaSessaoPage({ searchParams }: Props) {
   return (
     <div>
       <PageHeader
-        title="Nova sessão"
-        description="Registre o atendimento clínico realizado."
+        title="Registrar atendimento"
+        help={
+          <>
+            Registra o que foi feito no dia (procedimentos, dor, observações).
+            Não marca horário — não é agenda. Evolução textual estruturada fica
+            no Prontuário do paciente.
+          </>
+        }
       />
       <div className="max-w-3xl rounded-xl border border-border bg-surface-raised p-6">
         <SessaoForm

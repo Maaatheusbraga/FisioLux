@@ -4,6 +4,7 @@ import { assertPermissao } from "@/lib/auth/permissoes";
 import type { SessaoUsuario } from "@/lib/auth/sessao";
 import { PacienteRepository } from "@/repositories/pacientes/paciente-repository";
 import { TimelineService } from "@/services/timeline/timeline-service";
+import { getStorageService } from "@/lib/storage";
 import type { PacienteFormInput } from "@/lib/validations/paciente";
 import { parseDataIso } from "@/utils/date";
 import type { Paciente, status_paciente } from "@prisma/client";
@@ -160,6 +161,11 @@ export class PacienteService {
   async excluir(sessao: SessaoUsuario, id: string): Promise<void> {
     assertPermissao(sessao.perfil, "pacientes.gerenciar");
 
+    const arquivos = await this.pacientes.listarArquivosAtivos(
+      sessao.clinicaId,
+      id,
+    );
+
     await prisma.$transaction(async (tx) => {
       try {
         const paciente = await this.pacientes.softDelete(
@@ -173,11 +179,24 @@ export class PacienteService {
           pacienteId: paciente.id,
           usuarioId: sessao.usuarioId,
           tipo: "paciente_excluido",
-          descricao: `Paciente ${paciente.nome} removido (exclusão lógica).`,
+          descricao: `Paciente ${paciente.nome} removido com vínculos clínicos e arquivos (exclusão lógica).`,
         });
       } catch {
         throw new AppError("Paciente não encontrado.", "PACIENTE_NOT_FOUND");
       }
     });
+
+    // Storage fora da transação — best-effort para a lixeira
+    if (arquivos.length > 0) {
+      const storage = getStorageService();
+      for (const arq of arquivos) {
+        try {
+          const moved = await storage.moveToTrash(arq.storage_key);
+          await this.pacientes.atualizarStorageKey(arq.id, moved.storageKey);
+        } catch {
+          // metadados já estão soft-deleted
+        }
+      }
+    }
   }
 }

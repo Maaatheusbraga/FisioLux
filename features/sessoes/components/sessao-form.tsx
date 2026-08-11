@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
+import { HelpTip } from "@/components/ui/help-tip";
 import { PacienteBuscaField } from "@/features/pacientes/components/paciente-busca-field";
+import { ProtocoloPicker } from "@/features/sessoes/components/protocolo-picker";
 import {
   atualizarSessaoAction,
   criarSessaoAction,
@@ -58,7 +60,6 @@ export function SessaoForm({
   const action = editing ? atualizarSessaoAction : criarSessaoAction;
   const [state, formAction, pending] = useActionState(action, initialState);
 
-  const selectedProtocolos = new Set(sessao?.protocoloIds ?? []);
   const pacienteBloqueado = sessao?.paciente ?? pacienteFixo ?? null;
 
   return (
@@ -165,56 +166,23 @@ export function SessaoForm({
         />
       </div>
 
-      <fieldset className="space-y-3">
-        <legend className="text-sm font-semibold text-ink">
-          Protocolos utilizados
-        </legend>
-        {protocolos.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-border px-3 py-4 text-sm text-ink-muted">
-            Nenhum protocolo cadastrado ainda. O CRUD completo chega na Fase 8 —
-            você já pode registrar a sessão sem protocolos.
-          </p>
-        ) : (
-          <div className="grid gap-2 sm:grid-cols-2">
-            {protocolos.map((p) => (
-              <label
-                key={p.id}
-                className="flex cursor-pointer items-start gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm hover:bg-surface-raised"
-              >
-                <input
-                  type="checkbox"
-                  name="protocolo_ids"
-                  value={p.id}
-                  defaultChecked={selectedProtocolos.has(p.id)}
-                  className="mt-0.5 accent-[var(--primary)]"
-                />
-                <span>
-                  <span className="font-medium text-ink">{p.nome}</span>
-                  {p.tempo_estimado != null ? (
-                    <span className="block text-xs text-ink-subtle">
-                      ~{p.tempo_estimado} min
-                    </span>
-                  ) : null}
-                </span>
-              </label>
-            ))}
-          </div>
-        )}
-      </fieldset>
+      <ProtocoloPicker
+        protocolos={protocolos}
+        selectedIds={sessao?.protocoloIds ?? []}
+      />
 
-      <div className="rounded-lg border border-border bg-surface/60 px-3 py-3 text-xs text-ink-muted">
-        Fotos, vídeos e anexos da sessão entram na <strong>Fase 10</strong>{" "}
-        (StorageService). A sessão já fica pronta para receber esses arquivos.
-      </div>
-
-      <div className="flex flex-wrap gap-3 border-t border-border pt-6">
+      <div className="flex flex-wrap items-center gap-3 border-t border-border pt-6">
         <Button type="submit" disabled={pending}>
           {pending
             ? "Salvando…"
             : editing
-              ? "Salvar sessão"
-              : "Registrar sessão"}
+              ? "Salvar atendimento"
+              : "Registrar atendimento"}
         </Button>
+        <HelpTip label="Após salvar">
+          Depois de salvar, anexe fotos ou vídeos na tela do atendimento ou na
+          aba Fotos do paciente.
+        </HelpTip>
         <Link
           href={
             sessao

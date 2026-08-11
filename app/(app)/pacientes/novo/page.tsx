@@ -14,7 +14,7 @@ export default async function NovoPacientePage() {
     <div>
       <PageHeader
         title="Novo paciente"
-        description="Preencha os dados cadastrais. O CPF é obrigatório e único na clínica."
+        help="CPF é obrigatório e único na clínica."
       />
       <div className="max-w-4xl rounded-xl border border-border bg-surface-raised p-6">
         <PacienteForm />

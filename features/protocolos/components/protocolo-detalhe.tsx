@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { Protocolo } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ConfirmForm } from "@/components/ui/confirm-form";
 import { excluirProtocoloAction } from "@/features/protocolos/actions";
 
 type Props = {
@@ -67,24 +68,18 @@ export function ProtocoloDetalhe({ protocolo }: Props) {
             Voltar à lista
           </Button>
         </Link>
-        <form
+        <ConfirmForm
           action={excluirProtocoloAction}
           className="sm:ml-auto"
-          onSubmit={(e) => {
-            if (
-              !confirm(
-                "Excluir logicamente este protocolo? Ele deixará de aparecer nas sessões novas.",
-              )
-            ) {
-              e.preventDefault();
-            }
-          }}
+          title="Excluir protocolo"
+          message="Excluir logicamente este protocolo? Ele deixará de aparecer nas sessões novas."
+          confirmLabel="Excluir"
         >
           <input type="hidden" name="id" value={protocolo.id} />
           <Button type="submit" variant="danger">
             Excluir
           </Button>
-        </form>
+        </ConfirmForm>
       </div>
     </div>
   );

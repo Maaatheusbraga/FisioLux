@@ -162,7 +162,12 @@ export const dadosComplementaresAvaliacaoSchema = z
         habitos_vida: optionalText,
         exames_complementares: optionalText,
       })
-      .default({}),
+      .default({
+        historico_familiar: undefined,
+        historico_social: undefined,
+        habitos_vida: undefined,
+        exames_complementares: undefined,
+      }),
     exame: z.object({
       inspecao: z.array(z.string()).default([]),
       inspecao_obs: optionalText,

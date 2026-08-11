@@ -11,7 +11,7 @@ Vocabulário compartilhado do produto. Sem detalhes de implementação.
 | **Evento de timeline** | Registro imutável (na prática) de algo que aconteceu: cadastro, sessão, arquivo, alta, etc. |
 | **Sessão** | Registro clínico de um atendimento realizado (procedimentos, dor, protocolos, anexos). Não é agendamento. |
 | **Protocolo** | Modelo reutilizável de tratamento (nome, objetivo, tempo estimado, categorias), escopo da clínica. |
-| **Prontuário** | Conjunto clínico do paciente: anamnese, avaliações, plano, evoluções e alta. |
+| **Prontuário** | Conjunto clínico do paciente: **avaliação** (intake principal), plano, evoluções e alta. Anamnese genérica foi deprecada (só legado). |
 | **Alta** | Encerramento do tratamento: gera evento na Timeline e muda status do paciente para `alta` (reabrível). |
 | **Arquivo** | Metadado de um anexo (foto, vídeo, laudo, etc.). Binário fica no Storage, nunca no Postgres. |
 | **Categoria de arquivo** | Classificação fixa do anexo (`encaminhamento`, `laudo`, `foto_antes`, `documento`, …). |

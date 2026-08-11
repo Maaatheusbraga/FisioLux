@@ -22,7 +22,7 @@ export function PacientesTabela({ pacientes }: Props) {
         </p>
         <Link
           href="/pacientes/novo"
-          className="mt-4 inline-flex text-sm text-accent hover:underline"
+          className="mt-4 inline-flex min-h-11 items-center text-sm text-accent hover:underline"
         >
           Novo paciente
         </Link>
@@ -31,64 +31,103 @@ export function PacientesTabela({ pacientes }: Props) {
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border">
-      <table className="w-full text-left text-sm">
-        <thead className="border-b border-border bg-surface text-ink-muted">
-          <tr>
-            <th className="px-4 py-3 font-medium">Nome</th>
-            <th className="hidden px-4 py-3 font-medium md:table-cell">CPF</th>
-            <th className="hidden px-4 py-3 font-medium lg:table-cell">
-              Telefone
-            </th>
-            <th className="hidden px-4 py-3 font-medium xl:table-cell">
-              Nascimento
-            </th>
-            <th className="px-4 py-3 font-medium">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {pacientes.map((p) => (
-            <tr
-              key={p.id}
-              className="border-b border-border last:border-0 hover:bg-surface/60"
+    <>
+      {/* Mobile-first: lista em cartões */}
+      <ul className="space-y-2 md:hidden">
+        {pacientes.map((p) => (
+          <li key={p.id}>
+            <Link
+              href={`/pacientes/${p.id}`}
+              className="block rounded-xl border border-border bg-surface-raised px-4 py-3 transition active:bg-surface"
             >
-              <td className="px-4 py-3">
-                <Link
-                  href={`/pacientes/${p.id}`}
-                  className="font-medium text-ink hover:text-primary"
-                >
-                  {p.nome}
-                </Link>
-                {p.diagnostico ? (
-                  <p className="mt-0.5 line-clamp-1 text-xs text-ink-subtle">
-                    {p.diagnostico}
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-ink">{p.nome}</p>
+                  {p.diagnostico ? (
+                    <p className="mt-0.5 line-clamp-2 text-xs text-ink-subtle">
+                      {p.diagnostico}
+                    </p>
+                  ) : null}
+                  <p className="mt-1 text-xs text-ink-muted">
+                    {formatarTelefoneExibicao(p.whatsapp || p.telefone) ||
+                      formatarCpf(p.cpf)}
                   </p>
-                ) : null}
-              </td>
-              <td className="hidden px-4 py-3 font-mono text-xs text-ink-muted md:table-cell">
-                {formatarCpf(p.cpf)}
-              </td>
-              <td className="hidden px-4 py-3 text-ink-muted lg:table-cell">
-                {formatarTelefoneExibicao(p.whatsapp || p.telefone)}
-              </td>
-              <td className="hidden px-4 py-3 text-ink-muted xl:table-cell">
-                {formatarDataBr(p.data_nascimento)}
-              </td>
-              <td className="px-4 py-3">
+                </div>
                 <Badge
                   className={
                     p.status === "alta"
-                      ? "border-accent/30 text-accent"
-                      : "border-primary/30 text-primary"
+                      ? "shrink-0 border-accent/30 text-accent"
+                      : "shrink-0 border-primary/30 text-primary"
                   }
                 >
                   {statusLabel(p.status)}
                 </Badge>
-              </td>
+              </div>
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      {/* Desktop: tabela */}
+      <div className="hidden overflow-hidden rounded-xl border border-border md:block">
+        <table className="w-full text-left text-sm">
+          <thead className="border-b border-border bg-surface text-ink-muted">
+            <tr>
+              <th className="px-4 py-3 font-medium">Nome</th>
+              <th className="px-4 py-3 font-medium">CPF</th>
+              <th className="hidden px-4 py-3 font-medium lg:table-cell">
+                Telefone
+              </th>
+              <th className="hidden px-4 py-3 font-medium xl:table-cell">
+                Nascimento
+              </th>
+              <th className="px-4 py-3 font-medium">Status</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {pacientes.map((p) => (
+              <tr
+                key={p.id}
+                className="border-b border-border last:border-0 hover:bg-surface/60"
+              >
+                <td className="px-4 py-3">
+                  <Link
+                    href={`/pacientes/${p.id}`}
+                    className="font-medium text-ink hover:text-primary"
+                  >
+                    {p.nome}
+                  </Link>
+                  {p.diagnostico ? (
+                    <p className="mt-0.5 line-clamp-1 text-xs text-ink-subtle">
+                      {p.diagnostico}
+                    </p>
+                  ) : null}
+                </td>
+                <td className="px-4 py-3 font-mono text-xs text-ink-muted">
+                  {formatarCpf(p.cpf)}
+                </td>
+                <td className="hidden px-4 py-3 text-ink-muted lg:table-cell">
+                  {formatarTelefoneExibicao(p.whatsapp || p.telefone)}
+                </td>
+                <td className="hidden px-4 py-3 text-ink-muted xl:table-cell">
+                  {formatarDataBr(p.data_nascimento)}
+                </td>
+                <td className="px-4 py-3">
+                  <Badge
+                    className={
+                      p.status === "alta"
+                        ? "border-accent/30 text-accent"
+                        : "border-primary/30 text-primary"
+                    }
+                  >
+                    {statusLabel(p.status)}
+                  </Badge>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }

@@ -53,6 +53,17 @@ html.dark {
   body {
     @apply bg-bg text-ink antialiased;
     font-feature-settings: "ss01" on, "cv11" on;
+    /* Evita zoom automático em inputs no iOS */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Inputs ≥16px no mobile evitam zoom forçado no Safari */
+  @media (max-width: 767px) {
+    input,
+    select,
+    textarea {
+      font-size: 16px;
+    }
   }
 
   h1,

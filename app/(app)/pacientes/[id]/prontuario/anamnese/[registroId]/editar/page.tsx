@@ -30,7 +30,11 @@ export default async function EditarAnamnesePage({ params }: Props) {
 
     return (
       <div>
-        <PageHeader title="Editar anamnese" description={paciente.nome} />
+        <PageHeader
+          title="Editar anamnese (legado)"
+          description={paciente.nome}
+          help="Registro antigo. Novos intakes usam a Avaliação musculoesquelética."
+        />
         <div className="max-w-3xl rounded-xl border border-border bg-surface-raised p-6">
           <AnamneseForm
             pacienteId={paciente.id}

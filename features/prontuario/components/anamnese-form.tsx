@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   atualizarAnamneseAction,
-  criarAnamneseAction,
   type ProntuarioActionState,
 } from "@/features/prontuario/actions";
 import { toInputDate } from "@/utils/date";
@@ -24,14 +23,40 @@ type Props = {
 
 export function AnamneseForm({ pacienteId, pacienteNome, anamnese }: Props) {
   const editing = Boolean(anamnese);
-  const action = editing ? atualizarAnamneseAction : criarAnamneseAction;
-  const [state, formAction, pending] = useActionState(action, initialState);
+  const [state, formAction, pending] = useActionState(
+    atualizarAnamneseAction,
+    initialState,
+  );
   const voltar = `/pacientes/${pacienteId}?aba=prontuario`;
+  const avaliacaoNova = `/pacientes/${pacienteId}/prontuario/avaliacao/nova`;
+
+  if (!editing || !anamnese) {
+    return (
+      <div className="space-y-3 rounded-lg border border-border bg-surface px-4 py-4 text-sm">
+        <p className="text-ink">
+          A anamnese genérica foi descontinuada. Use a{" "}
+          <Link href={avaliacaoNova} className="text-primary hover:underline">
+            Avaliação musculoesquelética
+          </Link>
+          .
+        </p>
+      </div>
+    );
+  }
 
   return (
     <form action={formAction} className="space-y-5">
       <input type="hidden" name="paciente_id" value={pacienteId} />
-      {anamnese ? <input type="hidden" name="id" value={anamnese.id} /> : null}
+      <input type="hidden" name="id" value={anamnese.id} />
+
+      <div className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-ink-muted">
+        Registro <strong className="text-ink">legado</strong>. Novos intakes
+        devem ser feitos na{" "}
+        <Link href={avaliacaoNova} className="text-primary hover:underline">
+          Avaliação
+        </Link>
+        .
+      </div>
 
       <p className="text-sm text-ink-muted">Paciente: {pacienteNome}</p>
 
@@ -92,7 +117,7 @@ export function AnamneseForm({ pacienteId, pacienteNome, anamnese }: Props) {
 
       <div className="flex flex-wrap gap-3 border-t border-border pt-5">
         <Button type="submit" disabled={pending}>
-          {pending ? "Salvando…" : editing ? "Salvar" : "Registrar anamnese"}
+          {pending ? "Salvando…" : "Salvar registro legado"}
         </Button>
         <Link href={voltar}>
           <Button type="button" variant="secondary">

@@ -167,7 +167,7 @@ export default async function PacientePage({ params, searchParams }: Props) {
               {possuiPermissao(sessao.perfil, "exportacao.clinica") ? (
                 <a
                   href={`/pacientes/${paciente.id}/exportar`}
-                  title="Anamnese, avaliações, planos, evoluções, altas e atendimentos recentes — sem fotos nem documentos anexos"
+                  title="Avaliações, planos, evoluções, altas e atendimentos recentes — sem fotos nem documentos anexos"
                 >
                   <Button type="button" variant="secondary" size="sm">
                     PDF clínico

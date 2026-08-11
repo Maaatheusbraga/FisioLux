@@ -90,7 +90,7 @@ function NavLink({
       onClick={onNavigate}
       title={item.dica}
       className={cn(
-        "group flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition duration-150 ease-out",
+        "group flex min-h-11 items-center gap-2.5 rounded-lg px-2.5 py-2.5 text-sm transition duration-150 ease-out md:min-h-0 md:py-2",
         ativo
           ? "bg-primary/15 text-ink"
           : "text-ink-muted hover:bg-surface-raised hover:text-ink",

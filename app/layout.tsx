@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import "./globals.css";
@@ -15,6 +15,21 @@ export const metadata: Metadata = {
     template: "%s · FisioLux",
   },
   description: "Gestão clínica com Timeline no centro",
+  appleWebApp: {
+    capable: true,
+    title: "FisioLux",
+    statusBarStyle: "black-translucent",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: "#171717" },
+    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
+  ],
 };
 
 const themeBootScript = `

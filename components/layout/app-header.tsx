@@ -23,45 +23,49 @@ export function AppHeader({ nome, email, perfil }: Props) {
 
   return (
     <>
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-bg/80 px-4 backdrop-blur-md md:px-6">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="md:hidden"
-          aria-label="Abrir menu"
-          onClick={() => setMobileOpen(true)}
-        >
-          <Menu className="h-5 w-5" />
-        </Button>
+      <header className="sticky top-0 z-30 border-b border-border bg-bg/80 pt-[env(safe-area-inset-top)] backdrop-blur-md">
+        <div className="flex h-14 items-center gap-2 px-3 md:gap-3 md:px-6">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="shrink-0 md:hidden"
+            aria-label="Abrir menu"
+            onClick={() => setMobileOpen(true)}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
 
-        <Breadcrumb className="min-w-0 shrink" />
+          <Breadcrumb className="hidden min-w-0 shrink md:flex" />
 
-        {possuiPermissao(perfil, "pacientes.gerenciar") ? (
-          <HeaderSearch />
-        ) : null}
+          {possuiPermissao(perfil, "pacientes.gerenciar") ? (
+            <HeaderSearch className="max-w-none md:max-w-xs" />
+          ) : (
+            <div className="min-w-0 flex-1 md:hidden" />
+          )}
 
-        <div className="ml-auto flex items-center gap-1 sm:gap-2">
-          <ThemeToggle />
-          <div className="hidden text-right sm:block">
-            <p className="max-w-[10rem] truncate text-sm font-medium leading-tight">
-              {nome}
-            </p>
-            <p className="max-w-[10rem] truncate text-2xs capitalize text-ink-subtle">
-              {perfil}
-            </p>
+          <div className="flex shrink-0 items-center gap-0.5 sm:gap-2">
+            <ThemeToggle />
+            <div className="hidden text-right lg:block">
+              <p className="max-w-[10rem] truncate text-sm font-medium leading-tight">
+                {nome}
+              </p>
+              <p className="max-w-[10rem] truncate text-2xs capitalize text-ink-subtle">
+                {perfil}
+              </p>
+            </div>
+            <form action={logoutAction}>
+              <Button
+                type="submit"
+                variant="ghost"
+                size="icon"
+                aria-label="Sair"
+                title={`Sair (${email})`}
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </form>
           </div>
-          <form action={logoutAction}>
-            <Button
-              type="submit"
-              variant="ghost"
-              size="icon"
-              aria-label="Sair"
-              title={`Sair (${email})`}
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </form>
         </div>
       </header>
 

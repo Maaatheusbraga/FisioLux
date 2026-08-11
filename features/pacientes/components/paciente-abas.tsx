@@ -50,21 +50,29 @@ export function PacienteAbas({
   ];
 
   return (
-    <div className="mb-6 flex gap-1 border-b border-border">
-      {abas.map((item) => (
-        <Link
-          key={item.id}
-          href={href(item.id)}
-          className={cn(
-            "border-b-2 px-3 py-2 text-sm font-medium transition",
-            aba === item.id
-              ? "border-primary text-ink"
-              : "border-transparent text-ink-muted hover:text-ink",
-          )}
-        >
-          {item.label}
-        </Link>
-      ))}
+    <div className="-mx-4 mb-6 border-b border-border md:mx-0">
+      <div
+        className="flex gap-1 overflow-x-auto px-4 [-ms-overflow-style:none] [scrollbar-width:none] md:px-0 [&::-webkit-scrollbar]:hidden"
+        role="tablist"
+        aria-label="Seções do paciente"
+      >
+        {abas.map((item) => (
+          <Link
+            key={item.id}
+            href={href(item.id)}
+            role="tab"
+            aria-selected={aba === item.id}
+            className={cn(
+              "shrink-0 snap-start border-b-2 px-3 py-3 text-sm font-medium transition md:py-2",
+              aba === item.id
+                ? "border-primary text-ink"
+                : "border-transparent text-ink-muted hover:text-ink",
+            )}
+          >
+            {item.label}
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }

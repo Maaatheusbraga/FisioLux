@@ -228,7 +228,7 @@ export function PacienteForm({ paciente }: Props) {
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-sm font-semibold text-ink">Clínico / anamnese rápida</h2>
+        <h2 className="text-sm font-semibold text-ink">Clínico / dados rápidos</h2>
         <div className="grid gap-4 md:grid-cols-2">
           <Field label="Diagnóstico" htmlFor="diagnostico">
             <Textarea

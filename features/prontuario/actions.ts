@@ -61,25 +61,15 @@ export async function criarAnamneseAction(
   _prev: ProntuarioActionState,
   formData: FormData,
 ): Promise<ProntuarioActionState> {
-  const parsed = anamneseFormSchema.safeParse(anamneseFromForm(formData));
-  if (!parsed.success) {
+  const pacienteId = String(formData.get("paciente_id") || "");
+  if (!pacienteId) {
     return {
       ok: false,
-      message: parsed.error.issues[0]?.message ?? "Dados inválidos.",
+      message:
+        "Anamnese genérica descontinuada. Use a Avaliação musculoesquelética.",
     };
   }
-  try {
-    const sessao = await exigirSessao();
-    await service.criarAnamnese(sessao, parsed.data);
-    revalidatePaciente(parsed.data.paciente_id);
-    redirect(painelPath(parsed.data.paciente_id));
-  } catch (error) {
-    if (isNextRedirect(error)) throw error;
-    return {
-      ok: false,
-      message: mensagemDeErro(error, "Não foi possível salvar a anamnese."),
-    };
-  }
+  redirect(`/pacientes/${pacienteId}/prontuario/avaliacao/nova`);
 }
 
 export async function atualizarAnamneseAction(

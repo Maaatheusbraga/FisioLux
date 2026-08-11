@@ -398,6 +398,51 @@ export function AvaliacaoForm({ pacienteId, pacienteNome, avaliacao }: Props) {
         </div>
       </Secao>
 
+      <Secao title="Contexto (familiar, social e hábitos)">
+        <p className="text-xs text-ink-subtle">
+          Substitui a antiga anamnese genérica — registre aqui o que for
+          relevante ao plano terapêutico.
+        </p>
+        <div className="space-y-1.5">
+          <Label htmlFor="dc_historico_familiar">Histórico familiar</Label>
+          <Textarea
+            id="dc_historico_familiar"
+            name="dc_historico_familiar"
+            rows={2}
+            defaultValue={dc?.contexto?.historico_familiar ?? ""}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="dc_historico_social">Histórico social</Label>
+          <Textarea
+            id="dc_historico_social"
+            name="dc_historico_social"
+            rows={2}
+            defaultValue={dc?.contexto?.historico_social ?? ""}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="dc_habitos_vida">Hábitos de vida</Label>
+          <Textarea
+            id="dc_habitos_vida"
+            name="dc_habitos_vida"
+            rows={2}
+            defaultValue={dc?.contexto?.habitos_vida ?? ""}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="dc_exames_complementares">
+            Exames complementares
+          </Label>
+          <Textarea
+            id="dc_exames_complementares"
+            name="dc_exames_complementares"
+            rows={2}
+            defaultValue={dc?.contexto?.exames_complementares ?? ""}
+          />
+        </div>
+      </Secao>
+
       <Secao title="Exame físico" defaultOpen>
         <div className="space-y-2">
           <Label>Inspeção</Label>

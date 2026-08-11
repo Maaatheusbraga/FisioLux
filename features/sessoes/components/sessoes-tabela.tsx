@@ -30,73 +30,113 @@ export function SessoesTabela({ sessoes, mostrarPaciente = true }: Props) {
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border">
-      <table className="w-full text-left text-sm">
-        <thead className="border-b border-border bg-surface text-ink-muted">
-          <tr>
-            <th className="px-4 py-3 font-medium">Quando</th>
-            {mostrarPaciente ? (
-              <th className="px-4 py-3 font-medium">Paciente</th>
-            ) : null}
-            <th className="hidden px-4 py-3 font-medium md:table-cell">
-              Profissional
-            </th>
-            <th className="hidden px-4 py-3 font-medium lg:table-cell">
-              Protocolos
-            </th>
-            <th className="px-4 py-3 font-medium">Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sessoes.map((s) => (
-            <tr
-              key={s.id}
-              className="border-b border-border last:border-0 hover:bg-surface/60"
+    <>
+      <ul className="space-y-2 md:hidden">
+        {sessoes.map((s) => (
+          <li key={s.id}>
+            <Link
+              href={`/sessoes/${s.id}`}
+              className="block rounded-xl border border-border bg-surface-raised px-4 py-3 transition active:bg-surface"
             >
-              <td className="px-4 py-3">
-                <Link
-                  href={`/sessoes/${s.id}`}
-                  className="font-medium text-ink hover:text-primary"
-                >
-                  {formatarDataHoraBr(s.realizado_em)}
-                </Link>
-                {s.escala_dor != null ? (
-                  <p className="text-xs text-ink-subtle">Dor {s.escala_dor}/10</p>
-                ) : null}
-              </td>
-              {mostrarPaciente ? (
-                <td className="px-4 py-3">
-                  <Link
-                    href={`/pacientes/${s.paciente.id}`}
-                    className="text-ink-muted hover:text-ink"
-                  >
-                    {s.paciente.nome}
-                  </Link>
-                </td>
-              ) : null}
-              <td className="hidden px-4 py-3 text-ink-muted md:table-cell">
-                {s.profissional.nome}
-              </td>
-              <td className="hidden px-4 py-3 text-ink-muted lg:table-cell">
-                {s.protocolos.length > 0
-                  ? s.protocolos.map((p) => p.protocolo.nome).join(", ")
-                  : "—"}
-              </td>
-              <td className="px-4 py-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-medium text-ink">
+                    {formatarDataHoraBr(s.realizado_em)}
+                  </p>
+                  {mostrarPaciente ? (
+                    <p className="mt-0.5 truncate text-sm text-ink-muted">
+                      {s.paciente.nome}
+                    </p>
+                  ) : null}
+                  {s.escala_dor != null ? (
+                    <p className="mt-0.5 text-xs text-ink-subtle">
+                      Dor {s.escala_dor}/10
+                    </p>
+                  ) : null}
+                </div>
                 <Badge
                   className={
                     s.status === "cancelada"
-                      ? "border-danger/30 text-danger"
-                      : "border-primary/30 text-primary"
+                      ? "shrink-0 border-danger/30 text-danger"
+                      : "shrink-0 border-primary/30 text-primary"
                   }
                 >
                   {s.status === "cancelada" ? "Cancelada" : "Registrada"}
                 </Badge>
-              </td>
+              </div>
+            </Link>
+          </li>
+        ))}
+      </ul>
+
+      <div className="hidden overflow-hidden rounded-xl border border-border md:block">
+        <table className="w-full text-left text-sm">
+          <thead className="border-b border-border bg-surface text-ink-muted">
+            <tr>
+              <th className="px-4 py-3 font-medium">Quando</th>
+              {mostrarPaciente ? (
+                <th className="px-4 py-3 font-medium">Paciente</th>
+              ) : null}
+              <th className="hidden px-4 py-3 font-medium md:table-cell">
+                Profissional
+              </th>
+              <th className="hidden px-4 py-3 font-medium lg:table-cell">
+                Protocolos
+              </th>
+              <th className="px-4 py-3 font-medium">Status</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {sessoes.map((s) => (
+              <tr
+                key={s.id}
+                className="border-b border-border last:border-0 hover:bg-surface/60"
+              >
+                <td className="px-4 py-3">
+                  <Link
+                    href={`/sessoes/${s.id}`}
+                    className="font-medium text-ink hover:text-primary"
+                  >
+                    {formatarDataHoraBr(s.realizado_em)}
+                  </Link>
+                  {s.escala_dor != null ? (
+                    <p className="text-xs text-ink-subtle">Dor {s.escala_dor}/10</p>
+                  ) : null}
+                </td>
+                {mostrarPaciente ? (
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/pacientes/${s.paciente.id}`}
+                      className="text-ink-muted hover:text-ink"
+                    >
+                      {s.paciente.nome}
+                    </Link>
+                  </td>
+                ) : null}
+                <td className="hidden px-4 py-3 text-ink-muted md:table-cell">
+                  {s.profissional.nome}
+                </td>
+                <td className="hidden px-4 py-3 text-ink-muted lg:table-cell">
+                  {s.protocolos.length > 0
+                    ? s.protocolos.map((p) => p.protocolo.nome).join(", ")
+                    : "—"}
+                </td>
+                <td className="px-4 py-3">
+                  <Badge
+                    className={
+                      s.status === "cancelada"
+                        ? "border-danger/30 text-danger"
+                        : "border-primary/30 text-primary"
+                    }
+                  >
+                    {s.status === "cancelada" ? "Cancelada" : "Registrada"}
+                  </Badge>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }

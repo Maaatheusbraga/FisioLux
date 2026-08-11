@@ -22,6 +22,7 @@ type Props = {
     nome: string;
     status: "em_tratamento" | "alta";
   };
+  /** Registros legados — criação descontinuada (use Avaliação). */
   anamneses: {
     id: string;
     data_anamnese: Date;
@@ -65,17 +66,22 @@ function Secao({
   actionLabel,
   children,
   empty,
+  hint,
 }: {
   title: string;
   actionHref?: string;
   actionLabel?: string;
   children: React.ReactNode;
   empty?: boolean;
+  hint?: string;
 }) {
   return (
     <section className="rounded-xl border border-border bg-surface-raised p-5">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-sm font-semibold text-ink">{title}</h2>
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold text-ink">{title}</h2>
+          {hint ? <p className="mt-0.5 text-xs text-ink-subtle">{hint}</p> : null}
+        </div>
         {actionHref && actionLabel ? (
           <Link href={actionHref}>
             <Button type="button" size="sm" variant="secondary">
@@ -102,7 +108,11 @@ function ItemRow({
   titulo: string;
   meta: string;
   editarHref: string;
-  onExcluir?: { action: (fd: FormData) => Promise<void>; id: string; pacienteId: string };
+  onExcluir?: {
+    action: (fd: FormData) => Promise<void>;
+    id: string;
+    pacienteId: string;
+  };
 }) {
   return (
     <div className="flex flex-col gap-2 border-b border-border py-3 last:border-0 sm:flex-row sm:items-start sm:justify-between">
@@ -124,8 +134,17 @@ function ItemRow({
             confirmLabel="Excluir"
           >
             <input type="hidden" name="id" value={onExcluir.id} />
-            <input type="hidden" name="paciente_id" value={onExcluir.pacienteId} />
-            <Button type="submit" size="sm" variant="ghost" className="text-danger">
+            <input
+              type="hidden"
+              name="paciente_id"
+              value={onExcluir.pacienteId}
+            />
+            <Button
+              type="submit"
+              size="sm"
+              variant="ghost"
+              className="text-danger"
+            >
               Excluir
             </Button>
           </ConfirmForm>
@@ -163,9 +182,8 @@ export function ProntuarioPainel({
             Prontuário clínico · {paciente.nome}
           </span>
           <HelpTip label="Sobre o prontuário">
-            Registros clínicos estruturados (avaliação, plano, evolução, alta).
-            O atendimento do dia (procedimentos) fica em Atendimentos; o
-            histórico automático fica na Timeline.
+            Eixo clínico: avaliação → plano → evolução → alta. O atendimento do
+            dia fica em Atendimentos; o histórico automático fica na Timeline.
           </HelpTip>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -280,26 +298,27 @@ export function ProntuarioPainel({
         ))}
       </Secao>
 
-      <Secao
-        title="Anamneses (secundário)"
-        actionHref={`${base}/anamnese/nova`}
-        actionLabel="Nova anamnese"
-        empty={anamneses.length === 0}
-      >
-        {anamneses.map((a) => (
-          <ItemRow
-            key={a.id}
-            titulo={formatarDataBr(a.data_anamnese)}
-            meta={`${a.usuario.nome}${a.queixa_principal ? ` · ${a.queixa_principal}` : ""}`}
-            editarHref={`${base}/anamnese/${a.id}/editar`}
-            onExcluir={{
-              action: excluirAnamneseAction,
-              id: a.id,
-              pacienteId: paciente.id,
-            }}
-          />
-        ))}
-      </Secao>
+      {anamneses.length > 0 ? (
+        <Secao
+          title="Anamneses (legado)"
+          hint="Criação descontinuada — novos intakes vão na Avaliação. Mantido só para registros antigos."
+          empty={false}
+        >
+          {anamneses.map((a) => (
+            <ItemRow
+              key={a.id}
+              titulo={formatarDataBr(a.data_anamnese)}
+              meta={`${a.usuario.nome}${a.queixa_principal ? ` · ${a.queixa_principal}` : ""}`}
+              editarHref={`${base}/anamnese/${a.id}/editar`}
+              onExcluir={{
+                action: excluirAnamneseAction,
+                id: a.id,
+                pacienteId: paciente.id,
+              }}
+            />
+          ))}
+        </Secao>
+      ) : null}
     </div>
   );
 }

@@ -154,6 +154,15 @@ export const dadosComplementaresAvaliacaoSchema = z
       outros: optionalText,
       medicamentos: optionalText,
     }),
+    /** Campos que antes viviam na anamnese genérica (agora no intake da avaliação). */
+    contexto: z
+      .object({
+        historico_familiar: optionalText,
+        historico_social: optionalText,
+        habitos_vida: optionalText,
+        exames_complementares: optionalText,
+      })
+      .default({}),
     exame: z.object({
       inspecao: z.array(z.string()).default([]),
       inspecao_obs: optionalText,
@@ -265,6 +274,12 @@ export function dadosComplementaresFromFormData(formData: FormData) {
       outros: opt(formData, "dc_historico_outros"),
       medicamentos: opt(formData, "dc_medicamentos"),
     },
+    contexto: {
+      historico_familiar: opt(formData, "dc_historico_familiar"),
+      historico_social: opt(formData, "dc_historico_social"),
+      habitos_vida: opt(formData, "dc_habitos_vida"),
+      exames_complementares: opt(formData, "dc_exames_complementares"),
+    },
     exame: {
       inspecao: getAll(formData, "dc_inspecao"),
       inspecao_obs: opt(formData, "dc_inspecao_obs"),
@@ -308,6 +323,7 @@ export function parseDadosComplementares(
     hda: {},
     dor: {},
     historico_clinico: {},
+    contexto: {},
     exame: {},
     ultrassonografia: {},
     procedimento: {},

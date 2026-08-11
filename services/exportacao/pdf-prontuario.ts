@@ -21,6 +21,9 @@ export type PdfProntuarioInput = {
     queixa_principal: string | null;
     historia_doenca_atual: string | null;
     historico_familiar: string | null;
+    historico_social: string | null;
+    habitos_vida: string | null;
+    exames_complementares: string | null;
     observacoes: string | null;
     usuario: UsuarioNome;
   }[];
@@ -90,10 +93,11 @@ function dadosComplementaresResumo(dados: unknown): string[] {
   push("HDA", d.hda);
   push("Dor", d.dor);
   push("Histórico clínico", d.historico_clinico);
+  push("Contexto", d.contexto);
   push("Exame", d.exame);
-  push("Hipótese", d.hipotese);
+  push("Hipótese", d.hipotese_diagnostica ?? d.hipotese);
   push("Contraindicações", d.contraindicacoes);
-  push("Ultrassom", d.ultrassom);
+  push("Ultrassom", d.ultrassonografia ?? d.ultrassom);
   return out;
 }
 
@@ -202,12 +206,17 @@ export async function gerarPdfProntuarioPaciente(
   }
 
   for (const a of input.anamneses) {
-    secao(`Anamnese — ${formatarDataBr(a.data_anamnese)}`, [
+    secao(`Anamnese (legado) — ${formatarDataBr(a.data_anamnese)}`, [
       `Profissional: ${a.usuario.nome}`,
       a.queixa_principal ? `Queixa: ${a.queixa_principal}` : null,
       a.historia_doenca_atual ? `HDA: ${a.historia_doenca_atual}` : null,
       a.historico_familiar
         ? `Histórico familiar: ${a.historico_familiar}`
+        : null,
+      a.historico_social ? `Histórico social: ${a.historico_social}` : null,
+      a.habitos_vida ? `Hábitos de vida: ${a.habitos_vida}` : null,
+      a.exames_complementares
+        ? `Exames complementares: ${a.exames_complementares}`
         : null,
       a.observacoes ? `Observações: ${a.observacoes}` : null,
     ]);

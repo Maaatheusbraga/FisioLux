@@ -45,15 +45,16 @@ COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Prisma (migrate no start)
+# Prisma schema + client gerado + CLI completo (migrate no start)
+# Copiar só pastas prisma/@prisma quebra deps transitivas (ex.: effect).
 COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
 COPY --chown=nextjs:nodejs docker/entrypoint.sh ./entrypoint.sh
-RUN sed -i 's/\r$//' ./entrypoint.sh && chmod +x ./entrypoint.sh
+RUN sed -i 's/\r$//' ./entrypoint.sh && chmod +x ./entrypoint.sh \
+  && npm install prisma@6.19.0 --no-save --no-audit --no-fund \
+  && chown -R nextjs:nodejs /app
 
 USER nextjs
 EXPOSE 3000

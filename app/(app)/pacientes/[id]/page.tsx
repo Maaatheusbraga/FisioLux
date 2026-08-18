@@ -133,14 +133,6 @@ export default async function PacientePage({ params, searchParams }: Props) {
       <div>
         <PageHeader
           title={paciente.nome}
-          help={
-            <>
-              Timeline = histórico automático. Atendimento do dia = botão
-              &quot;Registrar atendimento&quot;. Texto clínico estruturado = aba
-              Prontuário. PDF clínico exporta registros (sem fotos nem
-              documentos anexos).
-            </>
-          }
           actions={
             <div className="flex flex-wrap gap-2">
               <Badge
@@ -206,14 +198,7 @@ export default async function PacientePage({ params, searchParams }: Props) {
 
             <TimelineLista
               eventos={timeline.items}
-              emptyHint={
-                filtros.tipo !== "todos" ||
-                filtros.profissional !== "todos" ||
-                filtros.de ||
-                filtros.ate
-                  ? "Nenhum evento com esses filtros. Limpe os filtros ou registre um atendimento."
-                  : undefined
-              }
+              pacienteId={paciente.id}
               emptyCtas={
                 filtros.tipo === "todos" &&
                 filtros.profissional === "todos" &&
@@ -244,7 +229,7 @@ export default async function PacientePage({ params, searchParams }: Props) {
 
             <div className="flex items-center justify-between text-sm text-ink-muted">
               <p>
-                {timeline.total} evento{timeline.total === 1 ? "" : "s"}
+                {timeline.total} marco{timeline.total === 1 ? "" : "s"}
               </p>
               {totalPages > 1 ? (
                 <div className="flex gap-2">
@@ -282,7 +267,6 @@ export default async function PacientePage({ params, searchParams }: Props) {
               nome: painel.paciente.nome,
               status: painel.paciente.status,
             }}
-            anamneses={painel.anamneses}
             avaliacoes={painel.avaliacoes}
             planos={painel.planos}
             evolucoes={painel.evolucoes}

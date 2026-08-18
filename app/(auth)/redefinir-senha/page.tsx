@@ -8,10 +8,7 @@ export const metadata: Metadata = {
 
 export default function RedefinirSenhaPage() {
   return (
-    <AuthShell
-      title="Nova senha"
-      description="Defina uma nova senha para a sua conta."
-    >
+    <AuthShell title="Nova senha">
       <RedefinirSenhaForm />
     </AuthShell>
   );

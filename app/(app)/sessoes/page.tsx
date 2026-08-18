@@ -40,7 +40,6 @@ export default async function SessoesPage({ searchParams }: Props) {
     <div>
       <PageHeader
         title="Atendimentos"
-        help="Registros clínicos do que já foi feito. Não é agenda nem marcação de horário."
         actions={
           <Link href="/sessoes/nova">
             <Button type="button">Registrar atendimento</Button>

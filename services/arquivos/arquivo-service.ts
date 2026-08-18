@@ -24,6 +24,7 @@ import {
   labelCategoriaArquivo,
   type EscopoArquivo,
 } from "@/config/arquivos";
+import { resolverMimeArquivo } from "@/lib/arquivos/detectar-mime";
 import type { categoria_arquivo } from "@prisma/client";
 
 export type ArquivoUploadFile = {
@@ -187,18 +188,21 @@ export class ArquivoService {
       }
     }
 
-    if (!file.size || file.size <= 0) {
+    const tamanho = file.buffer.byteLength;
+    if (!tamanho || tamanho <= 0) {
       throw new AppError("Arquivo vazio.", "ARQUIVO_VAZIO");
     }
 
     const limite =
       meta.categoria === "video" ? LIMITE_UPLOAD_VIDEO : LIMITE_UPLOAD_PADRAO;
-    if (file.size > limite) {
+    if (tamanho > limite) {
       throw new AppError(
         `Arquivo excede o limite de ${Math.round(limite / (1024 * 1024))} MB.`,
         "ARQUIVO_GRANDE",
       );
     }
+
+    const mimeType = resolverMimeArquivo(file.buffer, meta.categoria);
 
     const paciente = await this.pacientes.buscarPorId(
       sessao.clinicaId,
@@ -226,7 +230,7 @@ export class ArquivoService {
       pacienteId: meta.paciente_id,
       categoria: meta.categoria,
       fileName: file.fileName,
-      mimeType: file.mimeType || "application/octet-stream",
+      mimeType,
       body: file.buffer,
       sessaoId: meta.sessao_id,
     });

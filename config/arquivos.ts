@@ -78,6 +78,8 @@ export function labelCategoriaArquivo(categoria: string): string {
 
 export const LIMITE_UPLOAD_PADRAO = 15 * 1024 * 1024;
 export const LIMITE_UPLOAD_VIDEO = 50 * 1024 * 1024;
+/** Teto do lote (abaixo do bodySizeLimit 50 MB das server actions). */
+export const LIMITE_LOTE_UPLOAD = 45 * 1024 * 1024;
 export const URL_ASSINADA_SEGUNDOS = 60 * 15;
 /** Máximo de arquivos por envio no formulário de mídia. */
 export const MAX_ARQUIVOS_POR_ENVIO = 10;

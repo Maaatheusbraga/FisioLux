@@ -12,10 +12,7 @@ export default async function NovoPacientePage() {
 
   return (
     <div>
-      <PageHeader
-        title="Novo paciente"
-        help="CPF é obrigatório e único na clínica."
-      />
+      <PageHeader title="Novo paciente" />
       <div className="max-w-4xl rounded-xl border border-border bg-surface-raised p-6">
         <PacienteForm />
       </div>

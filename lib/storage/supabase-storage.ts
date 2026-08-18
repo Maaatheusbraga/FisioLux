@@ -67,7 +67,7 @@ export class SupabaseStorageService implements StorageService {
 
     if (error) {
       throw new AppError(
-        `Falha no upload: ${error.message}`,
+        "Não foi possível enviar o arquivo. Tente novamente.",
         "STORAGE_UPLOAD_FAILED",
       );
     }
@@ -91,7 +91,7 @@ export class SupabaseStorageService implements StorageService {
 
     if (error || !data?.signedUrl) {
       throw new AppError(
-        `Não foi possível gerar URL: ${error?.message ?? "erro desconhecido"}`,
+        "Não foi possível abrir o arquivo.",
         "STORAGE_SIGNED_URL_FAILED",
       );
     }
@@ -117,7 +117,7 @@ export class SupabaseStorageService implements StorageService {
 
     if (error) {
       throw new AppError(
-        `Falha ao mover para lixeira: ${error.message}`,
+        "Não foi possível excluir o arquivo.",
         "STORAGE_TRASH_FAILED",
       );
     }
@@ -138,7 +138,7 @@ export class SupabaseStorageService implements StorageService {
 
     if (error) {
       throw new AppError(
-        `Falha ao excluir permanentemente: ${error.message}`,
+        "Não foi possível excluir o arquivo.",
         "STORAGE_DELETE_FAILED",
       );
     }
@@ -151,7 +151,7 @@ export class SupabaseStorageService implements StorageService {
 
     if (error || !data) {
       throw new AppError(
-        `Falha ao baixar: ${error?.message ?? "arquivo ausente"}`,
+        "Não foi possível baixar o arquivo.",
         "STORAGE_DOWNLOAD_FAILED",
       );
     }

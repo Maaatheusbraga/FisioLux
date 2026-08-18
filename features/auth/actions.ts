@@ -8,6 +8,7 @@ import {
   redefinirSenhaSchema,
 } from "@/lib/validations/auth";
 import { mensagemDeErro } from "@/lib/errors/app-error";
+import { caminhoInterno } from "@/lib/navigation/caminho-interno";
 
 export type AuthActionState = {
   ok: boolean;
@@ -41,8 +42,7 @@ export async function loginAction(
     };
   }
 
-  const redirectTo = String(formData.get("redirect") || "/dashboard");
-  redirect(redirectTo.startsWith("/") ? redirectTo : "/dashboard");
+  redirect(caminhoInterno(String(formData.get("redirect") || "/dashboard")));
 }
 
 export async function logoutAction(): Promise<void> {

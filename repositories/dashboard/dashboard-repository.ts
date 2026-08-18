@@ -11,6 +11,7 @@ export type DashboardResumo = {
   documentosAtivos: number;
   midiasAtivas: number;
   eventosTimeline7d: number;
+  atendimentosPorDia: { dia: string; total: number }[];
   sessoesRecentes: {
     id: string;
     realizado_em: Date;
@@ -58,6 +59,7 @@ export class DashboardRepository {
       documentosAtivos,
       midiasAtivas,
       eventosTimeline7d,
+      sessoesPeriodo,
       sessoesRecentes,
       pacientesRecentes,
     ] = await Promise.all([
@@ -125,6 +127,15 @@ export class DashboardRepository {
           clinica_id: clinicaId,
           deleted_at: null,
           status: "registrada",
+          realizado_em: { gte: ha30 },
+        },
+        select: { realizado_em: true },
+      }),
+      prisma.sessao.findMany({
+        where: {
+          clinica_id: clinicaId,
+          deleted_at: null,
+          status: "registrada",
         },
         orderBy: { realizado_em: "desc" },
         take: 8,
@@ -148,6 +159,21 @@ export class DashboardRepository {
       }),
     ]);
 
+    const dias: { dia: string; total: number }[] = [];
+    for (let i = 29; i >= 0; i -= 1) {
+      const d = new Date(agora);
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() - i);
+      const chave = d.toISOString().slice(0, 10);
+      dias.push({ dia: chave, total: 0 });
+    }
+    const indice = new Map(dias.map((x, i) => [x.dia, i]));
+    for (const s of sessoesPeriodo) {
+      const chave = new Date(s.realizado_em).toISOString().slice(0, 10);
+      const i = indice.get(chave);
+      if (i != null) dias[i]!.total += 1;
+    }
+
     return {
       pacientesEmTratamento,
       pacientesAlta,
@@ -159,6 +185,7 @@ export class DashboardRepository {
       documentosAtivos,
       midiasAtivas,
       eventosTimeline7d,
+      atendimentosPorDia: dias,
       sessoesRecentes,
       pacientesRecentes,
     };

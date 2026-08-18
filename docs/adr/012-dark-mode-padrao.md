@@ -1,14 +1,14 @@
-# ADR 012 — Dark mode como padrão
+# ADR 012 — Tema claro como padrão
 
 ## Status
 
-Aceito
+Aceito (substitui dark-first)
 
 ## Decisão
 
-Tema escuro padrão, com toggle para claro. Referências visuais: Linear / Notion / Stripe Dashboard.
+Tema **claro** padrão no handshake (login e primeira carga). Toggle permanece para escuro. Clínicas trabalham sob fluorescente; o primeiro ecrã não deve parecer ferramenta de startup.
 
 ## Consequências
 
-- Design System na Fase 4 com tokens light/dark
-- Preferência persistida (local/cookie) na implementação do layout
+- Tokens light em `:root`; dark em `html.dark`
+- Preferência em `localStorage` (`fisiolux-theme-v2`). A chave antiga `fisiolux-theme` é ignorada (era dark por default, não escolha do usuário).

@@ -12,10 +12,7 @@ export default async function NovoUsuarioPage() {
 
   return (
     <div>
-      <PageHeader
-        title="Novo usuário"
-        help="Define e-mail e senha inicial. A pessoa entra em /login com esses dados. Não há convite automático por e-mail."
-      />
+      <PageHeader title="Novo usuário" />
       <div className="max-w-3xl rounded-xl border border-border bg-surface-raised p-6">
         <UsuarioForm />
       </div>

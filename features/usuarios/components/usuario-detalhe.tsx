@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmForm } from "@/components/ui/confirm-form";
-import { HelpTip } from "@/components/ui/help-tip";
 import { excluirUsuarioAction } from "@/features/usuarios/actions";
 import { formatarTelefoneExibicao } from "@/utils/cpf";
 
@@ -49,15 +48,6 @@ export function UsuarioDetalhe({
           role="status"
         >
           <p className="font-medium">Usuário criado</p>
-          <p className="mt-1 text-ink-muted">
-            Passe o e-mail e a senha inicial para a pessoa. Ela entra em{" "}
-            <Link href="/login" className="font-medium text-primary hover:underline">
-              /login
-            </Link>{" "}
-            com esses dados. Se esquecer a senha, usa{" "}
-            <strong className="text-ink">Recuperar senha</strong> na tela de
-            login.
-          </p>
           <p className="mt-2 break-all rounded-lg bg-surface px-3 py-2 font-mono text-xs">
             {usuario.email}
           </p>
@@ -80,10 +70,6 @@ export function UsuarioDetalhe({
         {ehEu ? (
           <Badge className="border-accent/30 text-accent">Você</Badge>
         ) : null}
-        <HelpTip label="Como o usuário entra">
-          Login com o e-mail abaixo e a senha definida na criação (ou
-          redefinida em Recuperar senha). Não há convite automático por e-mail.
-        </HelpTip>
       </div>
 
       <section className="rounded-xl border border-border bg-surface-raised p-5">

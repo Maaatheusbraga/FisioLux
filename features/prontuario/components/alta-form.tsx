@@ -10,7 +10,6 @@ import {
   registrarAltaAction,
   type ProntuarioActionState,
 } from "@/features/prontuario/actions";
-import { HelpTip } from "@/components/ui/help-tip";
 import { toInputDate } from "@/utils/date";
 
 const initialState: ProntuarioActionState = { ok: false };
@@ -31,13 +30,7 @@ export function AltaForm({ pacienteId, pacienteNome }: Props) {
     <form action={formAction} className="space-y-5">
       <input type="hidden" name="paciente_id" value={pacienteId} />
 
-      <div className="flex items-center gap-1.5 text-sm text-ink-muted">
-        <span>Paciente: {pacienteNome}</span>
-        <HelpTip label="Sobre a alta">
-          A alta altera o status do paciente e gera evento na Timeline. O
-          tratamento pode ser reaberto depois.
-        </HelpTip>
-      </div>
+      <p className="text-sm text-ink-muted">Paciente: {pacienteNome}</p>
 
       {state.message ? (
         <p className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">

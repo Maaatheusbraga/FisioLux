@@ -70,6 +70,12 @@ docker compose exec app npx tsx scripts/bootstrap-admin.ts
 
 > Se `tsx` não estiver na imagem de produção, rode `npm run auth:bootstrap-admin` na sua máquina com o `.env` de produção (só a primeira vez).
 
+## `NEXT_PUBLIC_*` (importante)
+
+Variáveis `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` entram no **bundle na hora do `docker compose build`**. Trocar o `.env` e só dar `up -d` **não** atualiza o login. Depois de mudar URL/anon key: `docker compose build && docker compose up -d`.
+
+A anon key no browser é esperada (Auth). Dados clínicos **não** passam por ela: a app usa Prisma no servidor.
+
 ## Atualizar depois de um push no GitHub
 
 ```bash

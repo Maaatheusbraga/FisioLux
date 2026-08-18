@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmForm } from "@/components/ui/confirm-form";
-import { HelpTip } from "@/components/ui/help-tip";
 import { excluirSessaoAction } from "@/features/sessoes/actions";
 import { ArquivoUploadForm } from "@/features/arquivos/components/arquivo-upload-form";
 import { MidiaGaleria } from "@/features/arquivos/components/midia-galeria";
@@ -108,20 +107,13 @@ export function SessaoDetalhe({
       </section>
 
       <section className="space-y-4 rounded-xl border border-border bg-surface-raised p-5">
-        <div className="flex items-center gap-1.5">
           <h2 className="text-sm font-semibold text-ink">
             Fotos e vídeos do atendimento
           </h2>
-          <HelpTip label="Sobre mídia do atendimento">
-            Registre a mídia deste atendimento. Na próxima visita, esta pode
-            virar o “antes” na timeline de fotos do paciente.
-          </HelpTip>
-        </div>
         <MidiaGaleria
           midias={arquivosLista}
           pacienteId={sessao.paciente_id}
           redirectTo={redirectTo}
-          emptyHint="Adicione uma ou mais fotos/vídeos neste atendimento."
         />
         {podeUploadArquivos && categoriasUpload.length > 0 ? (
           <div className="border-t border-border pt-4">

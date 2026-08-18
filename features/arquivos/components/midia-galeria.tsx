@@ -16,7 +16,6 @@ type Props = {
   pacienteId: string;
   redirectTo: string;
   emptyLabel?: string;
-  emptyHint?: string;
   emptyCta?: { href: string; label: string };
 };
 
@@ -34,7 +33,6 @@ export function MidiaGaleria({
   pacienteId,
   redirectTo,
   emptyLabel = "Nenhuma foto ou vídeo",
-  emptyHint = "Adicione uma ou mais mídias acima.",
   emptyCta,
 }: Props) {
   const [urls, setUrls] = useState<Record<string, string>>({});
@@ -72,7 +70,6 @@ export function MidiaGaleria({
     return (
       <div className="rounded-xl border border-dashed border-border px-6 py-10 text-center">
         <p className="text-sm font-medium text-ink">{emptyLabel}</p>
-        <p className="mt-1 text-sm text-ink-muted">{emptyHint}</p>
         {emptyCta ? (
           <div className="mt-4">
             <Link href={emptyCta.href}>

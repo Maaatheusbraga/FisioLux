@@ -38,7 +38,7 @@ export function TimelineFiltros({
           Tipo
         </label>
         <Select id="tipo" name="tipo" defaultValue={tipo}>
-          <option value="todos">Todos</option>
+          <option value="todos">Jornada</option>
           {tipos.map((t) => (
             <option key={t} value={t}>
               {labelTipoEvento(t)}

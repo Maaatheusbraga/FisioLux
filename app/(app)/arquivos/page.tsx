@@ -67,10 +67,7 @@ export default async function ArquivosPage({ searchParams }: Props) {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Documentos"
-        help="Consulta de laudos, receitas e anexos. O upload principal fica na ficha do paciente (aba Documentos). Fotos e vídeos ficam na aba Fotos."
-      >
+      <PageHeader title="Documentos">
         <form method="get" className="flex flex-wrap items-end gap-3">
           {query.paciente ? (
             <input type="hidden" name="paciente" value={query.paciente} />
@@ -110,7 +107,6 @@ export default async function ArquivosPage({ searchParams }: Props) {
 
       {pacienteFixo ? (
         <p className="text-sm text-ink-muted">
-          Filtrando paciente:{" "}
           <Link
             href={`/pacientes/${pacienteFixo.id}?aba=arquivos`}
             className="text-ink hover:text-primary"
@@ -122,7 +118,7 @@ export default async function ArquivosPage({ searchParams }: Props) {
             href={`/pacientes/${pacienteFixo.id}?aba=fotos`}
             className="text-ink hover:text-primary"
           >
-            Ver fotos
+            Fotos
           </Link>
         </p>
       ) : null}
@@ -157,10 +153,6 @@ export default async function ArquivosPage({ searchParams }: Props) {
               : "/arquivos"
           }
         />
-        <p className="text-xs text-ink-subtle">
-          Categorias:{" "}
-          {categorias.map((c) => labelCategoriaArquivo(c.value)).join(", ")}.
-        </p>
       </section>
     </div>
   );

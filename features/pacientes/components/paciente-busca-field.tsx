@@ -180,9 +180,6 @@ export function PacienteBuscaField({
           </ul>
         ) : null}
       </div>
-      <p className="text-xs text-ink-subtle">
-        Digite para buscar — a lista não carrega todos os pacientes de uma vez.
-      </p>
     </div>
   );
 }

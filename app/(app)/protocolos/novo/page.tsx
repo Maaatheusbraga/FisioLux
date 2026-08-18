@@ -12,10 +12,7 @@ export default async function NovoProtocoloPage() {
 
   return (
     <div>
-      <PageHeader
-        title="Novo protocolo"
-        help="Modelo reutilizável para vincular nos atendimentos."
-      />
+      <PageHeader title="Novo protocolo" />
       <div className="max-w-3xl rounded-xl border border-border bg-surface-raised p-6">
         <ProtocoloForm />
       </div>

@@ -23,7 +23,7 @@ export function AppHeader({ nome, email, perfil }: Props) {
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-border bg-bg/80 pt-[env(safe-area-inset-top)] backdrop-blur-md">
+      <header className="sticky top-0 z-30 border-b border-border bg-bg pt-[env(safe-area-inset-top)]">
         <div className="flex h-14 items-center gap-2 px-3 md:gap-3 md:px-6">
           <Button
             type="button"

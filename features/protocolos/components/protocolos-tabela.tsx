@@ -19,9 +19,6 @@ export function ProtocolosTabela({ protocolos }: Props) {
     return (
       <div className="rounded-xl border border-dashed border-border px-6 py-14 text-center">
         <p className="text-sm font-medium text-ink">Nenhum protocolo encontrado</p>
-        <p className="mt-1 text-sm text-ink-muted">
-          Cadastre modelos reutilizáveis para vincular nas sessões.
-        </p>
       </div>
     );
   }

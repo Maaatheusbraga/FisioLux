@@ -8,7 +8,6 @@ import { TimelineService } from "@/services/timeline/timeline-service";
 import { parseDataIso } from "@/utils/date";
 import type {
   AltaFormInput,
-  AnamneseFormInput,
   AvaliacaoFormInput,
   EvolucaoFormInput,
   PlanoFormInput,
@@ -48,114 +47,6 @@ export class ProntuarioService {
       sessao.clinicaId,
       pacienteId,
     );
-  }
-
-  // ── Anamnese ──────────────────────────────────────────
-
-  async obterAnamnese(sessao: SessaoUsuario, id: string) {
-    assertPermissao(sessao.perfil, "prontuario.acessar");
-    const item = await this.prontuario.buscarAnamnese(sessao.clinicaId, id);
-    if (!item) {
-      throw new AppError("Anamnese não encontrada.", "ANAMNESE_NOT_FOUND");
-    }
-    return item;
-  }
-
-  async criarAnamnese(sessao: SessaoUsuario, input: AnamneseFormInput) {
-    const paciente = await this.exigirPaciente(sessao, input.paciente_id);
-
-    return prisma.$transaction(async (tx) => {
-      const registro = await this.prontuario.criarAnamnese(tx, {
-        clinica_id: sessao.clinicaId,
-        paciente_id: paciente.id,
-        usuario_id: sessao.usuarioId,
-        data_anamnese: parseDataIso(input.data_anamnese),
-        queixa_principal: input.queixa_principal,
-        historia_doenca_atual: input.historia_doenca_atual,
-        historico_familiar: input.historico_familiar,
-        historico_social: input.historico_social,
-        habitos_vida: input.habitos_vida,
-        exames_complementares: input.exames_complementares,
-        observacoes: input.observacoes,
-      });
-
-      await this.timeline.registrar(tx, {
-        clinicaId: sessao.clinicaId,
-        pacienteId: paciente.id,
-        usuarioId: sessao.usuarioId,
-        tipo: "anamnese_criada",
-        descricao: `Anamnese registrada para ${paciente.nome}.`,
-        ocorridoEm: registro.data_anamnese,
-        anamneseId: registro.id,
-      });
-
-      return registro;
-    });
-  }
-
-  async atualizarAnamnese(
-    sessao: SessaoUsuario,
-    id: string,
-    input: AnamneseFormInput,
-  ) {
-    const paciente = await this.exigirPaciente(sessao, input.paciente_id);
-
-    return prisma.$transaction(async (tx) => {
-      try {
-        const registro = await this.prontuario.atualizarAnamnese(
-          tx,
-          sessao.clinicaId,
-          id,
-          {
-            data_anamnese: parseDataIso(input.data_anamnese),
-            queixa_principal: input.queixa_principal ?? null,
-            historia_doenca_atual: input.historia_doenca_atual ?? null,
-            historico_familiar: input.historico_familiar ?? null,
-            historico_social: input.historico_social ?? null,
-            habitos_vida: input.habitos_vida ?? null,
-            exames_complementares: input.exames_complementares ?? null,
-            observacoes: input.observacoes ?? null,
-          },
-        );
-
-        await this.timeline.registrar(tx, {
-          clinicaId: sessao.clinicaId,
-          pacienteId: paciente.id,
-          usuarioId: sessao.usuarioId,
-          tipo: "anamnese_atualizada",
-          descricao: `Anamnese de ${paciente.nome} atualizada.`,
-          anamneseId: registro.id,
-        });
-
-        return registro;
-      } catch {
-        throw new AppError("Anamnese não encontrada.", "ANAMNESE_NOT_FOUND");
-      }
-    });
-  }
-
-  async excluirAnamnese(
-    sessao: SessaoUsuario,
-    id: string,
-    pacienteId: string,
-  ) {
-    const paciente = await this.exigirPaciente(sessao, pacienteId);
-
-    await prisma.$transaction(async (tx) => {
-      try {
-        await this.prontuario.softDeleteAnamnese(tx, sessao.clinicaId, id);
-        await this.timeline.registrar(tx, {
-          clinicaId: sessao.clinicaId,
-          pacienteId: paciente.id,
-          usuarioId: sessao.usuarioId,
-          tipo: "anamnese_atualizada",
-          descricao: `Anamnese de ${paciente.nome} removida (exclusão lógica).`,
-          anamneseId: id,
-        });
-      } catch {
-        throw new AppError("Anamnese não encontrada.", "ANAMNESE_NOT_FOUND");
-      }
-    });
   }
 
   // ── Avaliação ─────────────────────────────────────────

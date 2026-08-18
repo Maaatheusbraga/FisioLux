@@ -5,8 +5,12 @@ import { redirect } from "next/navigation";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { ArquivoService } from "@/services/arquivos/arquivo-service";
 import { uploadArquivoMetaSchema } from "@/lib/validations/arquivo";
-import { MAX_ARQUIVOS_POR_ENVIO } from "@/config/arquivos";
+import {
+  LIMITE_LOTE_UPLOAD,
+  MAX_ARQUIVOS_POR_ENVIO,
+} from "@/config/arquivos";
 import { mensagemDeErro } from "@/lib/errors/app-error";
+import { caminhoInterno } from "@/lib/navigation/caminho-interno";
 
 export type ArquivoActionState = {
   ok: boolean;
@@ -64,13 +68,27 @@ export async function uploadArquivoAction(
     const sessao = await exigirSessao();
     let enviados = 0;
 
-    for (const file of files) {
-      const buffer = Buffer.from(await file.arrayBuffer());
-      await service.upload(sessao, parsed.data, {
-        buffer,
+    const buffers = await Promise.all(
+      files.map(async (file) => ({
+        buffer: Buffer.from(await file.arrayBuffer()),
         fileName: file.name,
-        mimeType: file.type || "application/octet-stream",
-        size: file.size,
+      })),
+    );
+    const lote = buffers.reduce((acc, f) => acc + f.buffer.byteLength, 0);
+    if (lote > LIMITE_LOTE_UPLOAD) {
+      return {
+        ok: false,
+        message:
+          "O conjunto de arquivos é grande demais. Envie menos fotos por vez.",
+      };
+    }
+
+    for (const file of buffers) {
+      await service.upload(sessao, parsed.data, {
+        buffer: file.buffer,
+        fileName: file.fileName,
+        mimeType: "application/octet-stream",
+        size: file.buffer.byteLength,
       });
       enviados += 1;
     }
@@ -81,8 +99,10 @@ export async function uploadArquivoAction(
       revalidatePath(`/sessoes/${parsed.data.sessao_id}`);
     }
 
-    if (redirectTo.startsWith("/")) {
-      redirect(redirectTo);
+    if (redirectTo) {
+      redirect(
+        caminhoInterno(redirectTo, `/pacientes/${parsed.data.paciente_id}`),
+      );
     }
 
     return {
@@ -107,17 +127,19 @@ export async function excluirArquivoAction(formData: FormData): Promise<void> {
   const sessaoId = String(formData.get("sessao_id") || "");
   const redirectTo = String(formData.get("redirect_to") || "/arquivos");
 
-  const sessao = await exigirSessao();
-  await service.excluir(sessao, id);
+  try {
+    const sessao = await exigirSessao();
+    await service.excluir(sessao, id);
 
-  revalidatePath("/arquivos");
-  if (pacienteId) revalidatePath(`/pacientes/${pacienteId}`);
-  if (sessaoId) revalidatePath(`/sessoes/${sessaoId}`);
+    revalidatePath("/arquivos");
+    if (pacienteId) revalidatePath(`/pacientes/${pacienteId}`);
+    if (sessaoId) revalidatePath(`/sessoes/${sessaoId}`);
 
-  if (redirectTo.startsWith("/")) {
-    redirect(redirectTo);
+    redirect(caminhoInterno(redirectTo, "/arquivos"));
+  } catch (error) {
+    if (isNextRedirect(error)) throw error;
+    throw error;
   }
-  redirect("/arquivos");
 }
 
 export async function obterUrlAssinadaArquivoAction(

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/utils/cn";
@@ -37,20 +38,25 @@ export function SidebarNav({ perfil, onNavigate }: Props) {
     .filter((g) => g.items.length > 0);
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex h-14 items-center gap-2 border-b border-border px-4">
-        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-xs font-bold text-primary-fg">
-          Fx
-        </div>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold tracking-tight">
-            {appConfig.name}
-          </p>
-          <p className="truncate text-2xs text-ink-subtle">Clínica</p>
-        </div>
+    <div className="relative flex h-full flex-col">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_55%_at_12%_-8%,oklch(0.72_0.09_160/0.22),transparent_58%)] dark:bg-[radial-gradient(120%_55%_at_12%_-8%,oklch(0.48_0.08_160/0.28),transparent_58%)]"
+      />
+      <div className="relative z-10 flex h-14 items-center gap-2 border-b border-border px-4">
+        <Image
+          src="/logo-mark.png"
+          alt=""
+          width={281}
+          height={281}
+          className="h-8 w-8 shrink-0 object-contain"
+        />
+        <p className="min-w-0 truncate text-sm font-semibold tracking-tight">
+          {appConfig.name}
+        </p>
       </div>
 
-      <nav className="flex-1 space-y-4 overflow-y-auto p-3" aria-label="Principal">
+      <nav className="relative z-10 flex-1 space-y-4 overflow-y-auto p-3" aria-label="Principal">
         {porGrupo.map(({ grupo, items: grupoItems }) => (
           <div key={grupo} className="space-y-0.5">
             <p className="px-2.5 pb-1 text-2xs font-medium uppercase tracking-wide text-ink-subtle">

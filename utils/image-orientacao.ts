@@ -1,11 +1,8 @@
 /**
- * Normaliza fotos da câmera/galeria: aplica EXIF na bitmap e opcionalmente
- * desfaz espelhamento horizontal comum em capturas no celular.
+ * Normaliza fotos da câmera/galeria: aplica EXIF na bitmap.
+ * Não espelha — a imagem fica como o objeto real (lateralidade clínica).
  */
-export async function normalizarFotoClinica(
-  file: File,
-  opts: { espelhar?: boolean } = {},
-): Promise<File> {
+export async function normalizarFotoClinica(file: File): Promise<File> {
   if (!file.type.startsWith("image/")) return file;
 
   let bitmap: ImageBitmap;
@@ -30,10 +27,6 @@ export async function normalizarFotoClinica(
     return file;
   }
 
-  if (opts.espelhar) {
-    ctx.translate(canvas.width, 0);
-    ctx.scale(-1, 1);
-  }
   ctx.drawImage(bitmap, 0, 0);
   bitmap.close();
 

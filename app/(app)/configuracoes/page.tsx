@@ -15,10 +15,7 @@ export default async function ConfiguracoesPage() {
 
   return (
     <div>
-      <PageHeader
-        title="Configurações"
-        help="Dados cadastrais da clínica (aparecem no PDF clínico)."
-      />
+      <PageHeader title="Configurações" />
       <div className="max-w-3xl rounded-xl border border-border bg-surface-raised p-6">
         <ClinicaForm clinica={clinica} />
       </div>

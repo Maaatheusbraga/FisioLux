@@ -4,40 +4,40 @@
 
 :root {
   color-scheme: light;
-  --bg: oklch(0.99 0 0);
-  --surface: oklch(0.97 0.004 160);
-  --surface-raised: oklch(1 0 0);
-  --border: oklch(0.88 0.008 160);
-  --ink: oklch(0.22 0.02 160);
-  --muted: oklch(0.45 0.02 160);
-  --subtle: oklch(0.55 0.015 160);
+  --bg: oklch(0.965 0.014 160);
+  --surface: oklch(0.948 0.02 160);
+  --surface-raised: oklch(0.985 0.01 160);
+  --border: oklch(0.86 0.024 160);
+  --ink: oklch(0.22 0.025 160);
+  --muted: oklch(0.42 0.03 160);
+  --subtle: oklch(0.52 0.025 160);
   --primary: oklch(0.45 0.11 160);
   --primary-fg: oklch(0.99 0 0);
   --accent: oklch(0.48 0.12 220);
   --danger: oklch(0.55 0.19 25);
   --success: oklch(0.52 0.14 155);
   --ring: oklch(0.45 0.11 160);
-  --sidebar: oklch(0.975 0.006 160);
-  --overlay: oklch(0.2 0 0 / 0.45);
+  --sidebar: oklch(0.938 0.03 160);
+  --overlay: oklch(0.2 0.02 160 / 0.45);
 }
 
 html.dark {
   color-scheme: dark;
-  --bg: oklch(0.145 0 0);
-  --surface: oklch(0.185 0.004 160);
-  --surface-raised: oklch(0.215 0.005 160);
-  --border: oklch(0.28 0.008 160);
-  --ink: oklch(0.96 0.005 160);
-  --muted: oklch(0.68 0.015 160);
-  --subtle: oklch(0.52 0.012 160);
+  --bg: oklch(0.155 0.014 160);
+  --surface: oklch(0.19 0.018 160);
+  --surface-raised: oklch(0.23 0.02 160);
+  --border: oklch(0.30 0.022 160);
+  --ink: oklch(0.96 0.012 160);
+  --muted: oklch(0.70 0.02 160);
+  --subtle: oklch(0.55 0.018 160);
   --primary: oklch(0.72 0.12 160);
   --primary-fg: oklch(0.16 0.02 160);
   --accent: oklch(0.70 0.09 220);
   --danger: oklch(0.63 0.19 25);
   --success: oklch(0.72 0.14 155);
   --ring: oklch(0.72 0.12 160);
-  --sidebar: oklch(0.16 0.005 160);
-  --overlay: oklch(0.05 0 0 / 0.6);
+  --sidebar: oklch(0.175 0.024 160);
+  --overlay: oklch(0.05 0.01 160 / 0.6);
 }
 
 @layer base {

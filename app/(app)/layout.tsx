@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
 import { obterSessaoAtual } from "@/lib/auth/sessao";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function AppGroupLayout({
   children,
@@ -9,6 +10,8 @@ export default async function AppGroupLayout({
 }) {
   const sessao = await obterSessaoAtual();
   if (!sessao) {
+    const supabase = await createSupabaseServerClient();
+    await supabase.auth.signOut();
     redirect("/login");
   }
 

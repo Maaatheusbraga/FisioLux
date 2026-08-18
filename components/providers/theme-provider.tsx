@@ -18,24 +18,21 @@ type ThemeContextValue = {
 };
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
-export const THEME_STORAGE_KEY = "fisiolux-theme";
+/** v2: o valor antigo `fisiolux-theme=dark` era o default da app, não uma escolha. */
+export const THEME_STORAGE_KEY = "fisiolux-theme-v2";
+const THEME_STORAGE_KEY_LEGACY = "fisiolux-theme";
 
 function applyTheme(theme: Theme) {
-  const root = document.documentElement;
-  root.classList.toggle("dark", theme === "dark");
-  root.classList.remove("light");
-  if (theme === "light") {
-    // light = absence of .dark (tokens in :root)
-  }
+  document.documentElement.classList.toggle("dark", theme === "dark");
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("dark");
+  const [theme, setThemeState] = useState<Theme>("light");
 
   useEffect(() => {
+    window.localStorage.removeItem(THEME_STORAGE_KEY_LEGACY);
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    const initial: Theme =
-      stored === "light" || stored === "dark" ? stored : "dark";
+    const initial: Theme = stored === "dark" ? "dark" : "light";
     setThemeState(initial);
     applyTheme(initial);
   }, []);

@@ -12,12 +12,11 @@ import {
 } from "@/repositories/timeline/timeline-repository";
 import { PacienteRepository } from "@/repositories/pacientes/paciente-repository";
 import {
-  LABELS_TIPO_EVENTO,
   TIPOS_EVENTO_CADASTRAIS,
+  TIPOS_EVENTO_JORNADA,
 } from "@/config/timeline";
 import { parseDataIso } from "@/utils/date";
 import { prisma } from "@/lib/prisma";
-import type { TipoEventoTimeline } from "@/types/dominio";
 
 type Tx = Prisma.TransactionClient;
 
@@ -32,9 +31,8 @@ export class TimelineService {
   }
 
   /**
-   * Lista eventos do paciente com filtros.
-   * Recepção: apenas eventos cadastrais.
-   * Clínico: timeline completa (requer timeline.clinica).
+   * Lista a jornada clínica (marcos), não o log de auditoria.
+   * Recepção: cadastro e documentos.
    */
   async listarPorPaciente(
     sessao: SessaoUsuario,
@@ -61,7 +59,9 @@ export class TimelineService {
       ehPerfilClinico(sessao.perfil) &&
       possuiPermissao(sessao.perfil, "timeline.clinica");
 
-    const tiposPermitidos = clinico ? undefined : TIPOS_EVENTO_CADASTRAIS;
+    const tiposPermitidos = clinico
+      ? [...TIPOS_EVENTO_JORNADA]
+      : [...TIPOS_EVENTO_CADASTRAIS];
 
     let tipoFiltro: tipo_evento_timeline | "todos" = "todos";
     if (opts.tipo && opts.tipo !== "todos") {
@@ -105,7 +105,7 @@ export class TimelineService {
       ehPerfilClinico(sessao.perfil) &&
       possuiPermissao(sessao.perfil, "timeline.clinica");
     if (clinico) {
-      return Object.keys(LABELS_TIPO_EVENTO) as TipoEventoTimeline[] as tipo_evento_timeline[];
+      return [...TIPOS_EVENTO_JORNADA];
     }
     return [...TIPOS_EVENTO_CADASTRAIS];
   }

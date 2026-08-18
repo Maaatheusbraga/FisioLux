@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
-import { HelpTip } from "@/components/ui/help-tip";
 import { PacienteBuscaField } from "@/features/pacientes/components/paciente-busca-field";
 import { ProtocoloPicker } from "@/features/sessoes/components/protocolo-picker";
 import {
@@ -179,10 +178,6 @@ export function SessaoForm({
               ? "Salvar atendimento"
               : "Registrar atendimento"}
         </Button>
-        <HelpTip label="Após salvar">
-          Depois de salvar, anexe fotos ou vídeos na tela do atendimento ou na
-          aba Fotos do paciente.
-        </HelpTip>
         <Link
           href={
             sessao

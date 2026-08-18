@@ -14,10 +14,7 @@ export default async function LoginPage({ searchParams }: Props) {
   const params = await searchParams;
 
   return (
-    <AuthShell
-      title="Acesso à clínica"
-      description="Entre com seu e-mail e senha para continuar."
-    >
+    <AuthShell title="Entrar">
       <LoginForm
         redirectTo={params.redirect || "/dashboard"}
         resetOk={params.reset === "1"}

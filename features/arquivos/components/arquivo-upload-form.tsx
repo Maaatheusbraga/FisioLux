@@ -1,12 +1,11 @@
 "use client";
 
 import { useActionState, useEffect, useId, useRef, useState } from "react";
-import { Camera, FlipHorizontal2, FolderOpen, Video, X } from "lucide-react";
+import { Camera, FolderOpen, Video, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
-import { HelpTip } from "@/components/ui/help-tip";
 import { PacienteBuscaField } from "@/features/pacientes/components/paciente-busca-field";
 import {
   uploadArquivoAction,
@@ -47,11 +46,8 @@ export function ArquivoUploadForm({
   const [previews, setPreviews] = useState<PreviewLocal[]>([]);
   const [abrirPicker, setAbrirPicker] = useState(false);
   const [processando, setProcessando] = useState(false);
-  /** Câmera do celular costuma entregar a foto espelhada; desfazemos por padrão. */
-  const [corrigirEspelho, setCorrigirEspelho] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
   const dataTransferRef = useRef<DataTransfer | null>(null);
-  const rawCameraFilesRef = useRef<File[]>([]);
   const campoId = useId();
 
   const ehMidia = modo === "midia";
@@ -90,14 +86,12 @@ export function ArquivoUploadForm({
     previews.forEach((p) => URL.revokeObjectURL(p.url));
     setPreviews([]);
     dataTransferRef.current = null;
-    rawCameraFilesRef.current = [];
     if (inputRef.current) inputRef.current.value = "";
   }
 
   function escolherFonte(proxima: FonteArquivo) {
     setFonte(proxima);
     limparArquivos();
-    if (proxima === "camera") setCorrigirEspelho(true);
     setAbrirPicker(true);
   }
 
@@ -121,14 +115,14 @@ export function ArquivoUploadForm({
     }
     const lim = multiplo ? MAX_ARQUIVOS_POR_ENVIO : 1;
     const files = Array.from(list).slice(0, lim);
+    const imagens = files.filter((f) => f.type.startsWith("image/"));
 
-    if (fonte === "camera" && !ehVideo) {
-      rawCameraFilesRef.current = files;
+    if (imagens.length > 0) {
       setProcessando(true);
       try {
         const normalizados = await Promise.all(
           files.map((f) =>
-            normalizarFotoClinica(f, { espelhar: corrigirEspelho }),
+            f.type.startsWith("image/") ? normalizarFotoClinica(f) : f,
           ),
         );
         montarPreviews(normalizados);
@@ -138,25 +132,7 @@ export function ArquivoUploadForm({
       return;
     }
 
-    rawCameraFilesRef.current = [];
     montarPreviews(files);
-  }
-
-  async function alternarEspelho() {
-    if (fonte !== "camera" || rawCameraFilesRef.current.length === 0) return;
-    const proximo = !corrigirEspelho;
-    setCorrigirEspelho(proximo);
-    setProcessando(true);
-    try {
-      const normalizados = await Promise.all(
-        rawCameraFilesRef.current.map((f) =>
-          normalizarFotoClinica(f, { espelhar: proximo }),
-        ),
-      );
-      montarPreviews(normalizados);
-    } finally {
-      setProcessando(false);
-    }
   }
 
   function removerPreview(id: string) {
@@ -165,7 +141,6 @@ export function ArquivoUploadForm({
     const next = previews.filter((p) => p.id !== id);
     setPreviews(next);
     sincronizarInput(next.map((p) => p.file));
-    if (next.length === 0) rawCameraFilesRef.current = [];
   }
 
   return (
@@ -187,17 +162,6 @@ export function ArquivoUploadForm({
         >
           {state.message}
         </p>
-      ) : null}
-
-      {ehMidia ? (
-        <div className="flex justify-end">
-          <HelpTip label="Várias fotos" align="end">
-            Na galeria você pode selecionar várias fotos de uma vez (até{" "}
-            {MAX_ARQUIVOS_POR_ENVIO}). Pela câmera, uma por vez — envie e tire a
-            próxima. Fotos da câmera são corrigidas automaticamente (orientação
-            e espelhamento).
-          </HelpTip>
-        </div>
       ) : null}
 
       <PacienteBuscaField pacienteFixo={pacienteFixo} />
@@ -302,56 +266,21 @@ export function ArquivoUploadForm({
                 </li>
               ))}
             </ul>
-            {fonte === "camera" && !ehVideo ? (
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                disabled={processando}
-                onClick={() => void alternarEspelho()}
-              >
-                <FlipHorizontal2 className="size-4" aria-hidden />
-                {corrigirEspelho
-                  ? "Desfazer correção de espelho"
-                  : "Corrigir espelhamento"}
-              </Button>
-            ) : null}
           </div>
-        ) : (
-          <div className="rounded-lg border border-dashed border-border px-3 py-3 text-sm text-ink-muted">
-            Use <strong className="text-ink">Escolher</strong> ou{" "}
-            <strong className="text-ink">
-              {ehVideo ? "Gravar vídeo" : "Tirar foto"}
-            </strong>
-            {multiplo ? ` — até ${MAX_ARQUIVOS_POR_ENVIO} de uma vez.` : "."}
-          </div>
-        )}
+        ) : null}
         <p className="text-xs text-ink-subtle">
-          {ehMidia
-            ? `Até 15 MB por foto (vídeos até 50 MB). ${
-                multiplo
-                  ? `Seleção múltipla na galeria (máx. ${MAX_ARQUIVOS_POR_ENVIO}).`
-                  : "Câmera: uma por vez; espelhamento corrigido automaticamente."
-              }`
-            : "Até 15 MB. No celular, “Tirar foto” abre a câmera traseira."}
+          {ehMidia ? "Até 15 MB por foto · vídeos até 50 MB." : "Até 15 MB."}
         </p>
       </div>
 
       <div className="space-y-1.5">
         <Label htmlFor="descricao">
           Descrição{categoria === "documento" ? " *" : ""}
-          {ehMidia ? " (ângulo, região… — vale para todas deste envio)" : ""}
         </Label>
         <Textarea
           id="descricao"
           name="descricao"
-          placeholder={
-            categoria === "documento"
-              ? "Obrigatório para Documento — descreva o conteúdo"
-              : ehMidia
-                ? "Ex.: joelho direito, vista anterior"
-                : "Opcional"
-          }
+          placeholder={ehMidia ? "Ex.: joelho direito, vista anterior" : undefined}
           required={categoria === "documento"}
         />
       </div>

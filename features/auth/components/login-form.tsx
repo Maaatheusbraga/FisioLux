@@ -44,7 +44,6 @@ export function LoginForm({ redirectTo = "/dashboard", resetOk }: Props) {
           type="email"
           autoComplete="email"
           required
-          placeholder="voce@clinica.com"
         />
       </div>
 
@@ -65,7 +64,6 @@ export function LoginForm({ redirectTo = "/dashboard", resetOk }: Props) {
           autoComplete="current-password"
           required
           minLength={6}
-          placeholder="••••••••"
         />
       </div>
 

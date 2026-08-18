@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { UsuarioRepository } from "@/repositories/usuarios/usuario-repository";
+import { AppError } from "@/lib/errors/app-error";
 import type { PerfilUsuario } from "@/types/dominio";
 
 export type SessaoUsuario = {
@@ -48,7 +49,10 @@ export async function obterSessaoAtual(): Promise<SessaoUsuario | null> {
 export async function exigirSessao(): Promise<SessaoUsuario> {
   const sessao = await obterSessaoAtual();
   if (!sessao) {
-    throw new Error("Não autenticado ou usuário sem vínculo na clínica.");
+    throw new AppError(
+      "Sessão expirada. Entre novamente.",
+      "AUTH_REQUIRED",
+    );
   }
   return sessao;
 }

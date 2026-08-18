@@ -8,10 +8,7 @@ export const metadata: Metadata = {
 
 export default function RecuperarSenhaPage() {
   return (
-    <AuthShell
-      title="Recuperar senha"
-      description="Enviaremos um link de redefinição para o seu e-mail."
-    >
+    <AuthShell title="Recuperar senha">
       <RecuperarSenhaForm />
     </AuthShell>
   );

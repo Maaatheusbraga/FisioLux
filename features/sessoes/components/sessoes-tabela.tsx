@@ -22,9 +22,6 @@ export function SessoesTabela({ sessoes, mostrarPaciente = true }: Props) {
     return (
       <div className="rounded-xl border border-dashed border-border px-6 py-14 text-center">
         <p className="text-sm font-medium text-ink">Nenhuma sessão encontrada</p>
-        <p className="mt-1 text-sm text-ink-muted">
-          Registre o primeiro atendimento clínico.
-        </p>
       </div>
     );
   }

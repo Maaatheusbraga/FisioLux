@@ -3,7 +3,7 @@
  */
 export const appConfig = {
   name: process.env.NEXT_PUBLIC_APP_NAME ?? "FisioLux",
-  defaultTheme: (process.env.NEXT_PUBLIC_DEFAULT_THEME ?? "dark") as
+  defaultTheme: (process.env.NEXT_PUBLIC_DEFAULT_THEME ?? "light") as
     | "dark"
     | "light",
 } as const;

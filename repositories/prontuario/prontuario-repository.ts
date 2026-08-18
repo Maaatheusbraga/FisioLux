@@ -19,12 +19,7 @@ export class ProntuarioRepository {
       deleted_at: null,
     } as const;
 
-    const [anamneses, avaliacoes, planos, evolucoes, altas] = await Promise.all([
-      prisma.anamnese.findMany({
-        where: whereBase,
-        include: { usuario: { select: { id: true, nome: true } } },
-        orderBy: { data_anamnese: "desc" },
-      }),
+    const [avaliacoes, planos, evolucoes, altas] = await Promise.all([
       prisma.avaliacao.findMany({
         where: whereBase,
         include: { usuario: { select: { id: true, nome: true } } },
@@ -50,7 +45,7 @@ export class ProntuarioRepository {
       }),
     ]);
 
-    return { anamneses, avaliacoes, planos, evolucoes, altas };
+    return { avaliacoes, planos, evolucoes, altas };
   }
 
   async listarSessoesParaEvolucao(clinicaId: string, pacienteId: string) {

@@ -23,10 +23,7 @@ export default async function ProtocoloPage({ params }: Props) {
     const protocolo = await service.obter(sessaoAuth, id);
     return (
       <div>
-        <PageHeader
-          title={protocolo.nome}
-          description="Detalhe do protocolo terapêutico"
-        />
+        <PageHeader title={protocolo.nome} />
         <ProtocoloDetalhe protocolo={protocolo} />
       </div>
     );

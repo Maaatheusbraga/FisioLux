@@ -2,15 +2,15 @@ import type { tipo_evento_timeline } from "@prisma/client";
 import type { TipoEventoTimeline } from "@/types/dominio";
 
 export const LABELS_TIPO_EVENTO: Record<TipoEventoTimeline, string> = {
-  paciente_criado: "Paciente cadastrado",
+  paciente_criado: "Cadastro",
   paciente_atualizado: "Cadastro atualizado",
   paciente_excluido: "Paciente excluído",
-  sessao_criada: "Sessão registrada",
+  sessao_criada: "Atendimento",
   sessao_atualizada: "Sessão atualizada",
   sessao_cancelada: "Sessão cancelada",
   protocolo_criado: "Protocolo criado",
   protocolo_atualizado: "Protocolo atualizado",
-  protocolo_vinculado: "Protocolo vinculado",
+  protocolo_vinculado: "Protocolo",
   anamnese_criada: "Anamnese",
   anamnese_atualizada: "Anamnese atualizada",
   avaliacao_criada: "Avaliação",
@@ -21,16 +21,28 @@ export const LABELS_TIPO_EVENTO: Record<TipoEventoTimeline, string> = {
   evolucao_atualizada: "Evolução atualizada",
   alta_registrada: "Alta",
   tratamento_reaberto: "Tratamento reaberto",
-  arquivo_adicionado: "Arquivo adicionado",
+  arquivo_adicionado: "Foto / vídeo",
   arquivo_excluido: "Arquivo excluído",
-  documento_anexado: "Documento anexado",
+  documento_anexado: "Documento",
 };
+
+/** Marcos da jornada clínica — o que a Timeline mostra. */
+export const TIPOS_EVENTO_JORNADA: tipo_evento_timeline[] = [
+  "paciente_criado",
+  "avaliacao_criada",
+  "plano_terapeutico_criado",
+  "sessao_criada",
+  "evolucao_criada",
+  "documento_anexado",
+  "arquivo_adicionado",
+  "protocolo_vinculado",
+  "alta_registrada",
+  "tratamento_reaberto",
+];
 
 /** Eventos visíveis para recepção (não clínicos). */
 export const TIPOS_EVENTO_CADASTRAIS: tipo_evento_timeline[] = [
   "paciente_criado",
-  "paciente_atualizado",
-  "paciente_excluido",
   "documento_anexado",
 ];
 

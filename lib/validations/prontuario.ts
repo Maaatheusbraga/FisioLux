@@ -12,20 +12,6 @@ const dataObrigatoria = z
   .min(1, "Informe a data.")
   .refine((v) => /^\d{4}-\d{2}-\d{2}$/.test(v), "Data inválida.");
 
-export const anamneseFormSchema = z.object({
-  paciente_id: z.string().uuid("Paciente inválido."),
-  data_anamnese: dataObrigatoria,
-  queixa_principal: optionalText,
-  historia_doenca_atual: optionalText,
-  historico_familiar: optionalText,
-  historico_social: optionalText,
-  habitos_vida: optionalText,
-  exames_complementares: optionalText,
-  observacoes: optionalText,
-});
-
-export type AnamneseFormInput = z.infer<typeof anamneseFormSchema>;
-
 export const avaliacaoFormSchema = z.object({
   paciente_id: z.string().uuid("Paciente inválido."),
   tipo: z.enum(["inicial", "periodica"]),

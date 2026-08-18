@@ -19,7 +19,6 @@ export default async function UsuariosPage() {
     <div>
       <PageHeader
         title="Usuários"
-        help="Profissionais e recepção vinculados a esta clínica. Após criar, a pessoa entra em /login com e-mail e senha inicial."
         actions={
           <Link href="/usuarios/novo">
             <Button type="button">Novo usuário</Button>

@@ -31,7 +31,6 @@ type Props = {
   mostrarPaciente?: boolean;
   redirectTo?: string;
   emptyLabel?: string;
-  emptyHint?: string;
 };
 
 function formatBytes(n: number): string {
@@ -45,7 +44,6 @@ export function ArquivosLista({
   mostrarPaciente = false,
   redirectTo,
   emptyLabel = "Nenhum arquivo",
-  emptyHint = "Envie o primeiro anexo deste contexto.",
 }: Props) {
   const [pending, startTransition] = useTransition();
   const confirm = useConfirm();
@@ -54,7 +52,6 @@ export function ArquivosLista({
     return (
       <div className="rounded-xl border border-dashed border-border px-6 py-10 text-center">
         <p className="text-sm font-medium text-ink">{emptyLabel}</p>
-        <p className="mt-1 text-sm text-ink-muted">{emptyHint}</p>
       </div>
     );
   }

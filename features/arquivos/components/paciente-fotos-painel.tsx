@@ -4,12 +4,12 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { Download } from "lucide-react";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { HelpTip } from "@/components/ui/help-tip";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { ArquivoUploadForm } from "@/features/arquivos/components/arquivo-upload-form";
 import { MidiaGaleria } from "@/features/arquivos/components/midia-galeria";
 import { obterUrlAssinadaArquivoAction } from "@/features/arquivos/actions";
 import { formatarDataHoraBr } from "@/utils/date";
+import { baixarComparacaoPdf } from "@/utils/comparacao-pdf";
 import type { ArquivoListaItem } from "@/features/arquivos/components/arquivos-lista";
 
 type Props = {
@@ -17,87 +17,6 @@ type Props = {
   categorias: { value: string; label: string }[];
   midias: ArquivoListaItem[];
 };
-
-function carregarImagem(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("Falha ao carregar imagem."));
-    img.src = src;
-  });
-}
-
-async function baixarComparacaoPng(opts: {
-  antesUrl: string;
-  depoisUrl: string;
-  pacienteNome: string;
-  slider: number;
-}) {
-  const [antes, depois] = await Promise.all([
-    carregarImagem(opts.antesUrl),
-    carregarImagem(opts.depoisUrl),
-  ]);
-
-  const w = Math.max(antes.naturalWidth, depois.naturalWidth, 800);
-  const h = Math.round(
-    Math.max(
-      (antes.naturalHeight / antes.naturalWidth) * w,
-      (depois.naturalHeight / depois.naturalWidth) * w,
-    ),
-  );
-
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h + 48;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas indisponível.");
-
-  ctx.fillStyle = "#0f1211";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  ctx.drawImage(antes, 0, 48, w, h);
-  const corte = (opts.slider / 100) * w;
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(0, 48, corte, h);
-  ctx.clip();
-  ctx.drawImage(depois, 0, 48, w, h);
-  ctx.restore();
-
-  ctx.strokeStyle = "rgba(255,255,255,0.9)";
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(corte, 48);
-  ctx.lineTo(corte, 48 + h);
-  ctx.stroke();
-
-  ctx.fillStyle = "#e8eeec";
-  ctx.font = "600 16px system-ui, sans-serif";
-  ctx.fillText(`FisioLux · ${opts.pacienteNome}`, 16, 30);
-  ctx.font = "12px system-ui, sans-serif";
-  ctx.fillStyle = "#9aaba5";
-  ctx.fillText("Antes", 16, 48 + h - 12);
-  ctx.fillText("Depois", w - 56, 48 + h - 12);
-
-  const blob = await new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, "image/png"),
-  );
-  if (!blob) throw new Error("Não foi possível gerar o PNG.");
-
-  const slug = opts.pacienteNome
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-zA-Z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 40);
-
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `FISIOLUX-${slug || "paciente"}-comparacao.png`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-}
 
 export function PacienteFotosPainel({
   paciente,
@@ -160,13 +79,20 @@ export function PacienteFotosPainel({
 
   async function onExportar() {
     if (!antesUrl || !depoisUrl) return;
+    const antesItem = fotos.find((f) => f.id === antesId);
+    const depoisItem = fotos.find((f) => f.id === depoisId);
     setExportando(true);
     try {
-      await baixarComparacaoPng({
+      await baixarComparacaoPdf({
         antesUrl,
         depoisUrl,
         pacienteNome: paciente.nome,
-        slider,
+        antesLegenda: antesItem
+          ? formatarDataHoraBr(new Date(antesItem.data_upload))
+          : undefined,
+        depoisLegenda: depoisItem
+          ? formatarDataHoraBr(new Date(depoisItem.data_upload))
+          : undefined,
       });
     } catch (error) {
       await ask({
@@ -174,7 +100,7 @@ export function PacienteFotosPainel({
         message:
           error instanceof Error
             ? error.message
-            : "Não foi possível gerar a imagem. Verifique se as fotos carregaram.",
+            : "Não foi possível gerar o PDF. Verifique se as fotos carregaram.",
         confirmLabel: "Ok",
         danger: false,
       });
@@ -186,15 +112,9 @@ export function PacienteFotosPainel({
   return (
     <div className="space-y-8">
       <section className="rounded-xl border border-border bg-surface-raised p-5">
-        <div className="mb-4 flex items-center gap-1.5">
-          <h2 className="text-sm font-semibold text-ink">
-            Registrar foto ou vídeo
-          </h2>
-          <HelpTip label="Sobre fotos e vídeos">
-            Preferência: registrar no atendimento do dia. Na galeria, selecione
-            várias fotos de uma vez. Documentos ficam na aba Documentos.
-          </HelpTip>
-        </div>
+        <h2 className="mb-4 text-sm font-semibold text-ink">
+          Registrar foto ou vídeo
+        </h2>
         <ArquivoUploadForm
           categorias={categorias}
           pacienteFixo={paciente}
@@ -206,15 +126,9 @@ export function PacienteFotosPainel({
       {fotos.length >= 2 ? (
         <section className="space-y-4 rounded-xl border border-border bg-surface-raised p-5">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5">
-              <h2 className="text-sm font-semibold text-ink">
-                Comparar (antes × depois)
-              </h2>
-              <HelpTip label="Como comparar">
-                Escolha duas fotos. Use o slider e baixe o PNG da comparação
-                (útil para enviar fora do sistema).
-              </HelpTip>
-            </div>
+            <h2 className="text-sm font-semibold text-ink">
+              Comparar (antes × depois)
+            </h2>
             <Button
               type="button"
               size="sm"
@@ -223,7 +137,7 @@ export function PacienteFotosPainel({
               onClick={() => void onExportar()}
             >
               <Download className="size-4" aria-hidden />
-              {exportando ? "Gerando…" : "Baixar PNG"}
+              {exportando ? "Gerando…" : "Baixar PDF"}
             </Button>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -282,9 +196,13 @@ export function PacienteFotosPainel({
               />
             ) : null}
             <div
-              className="pointer-events-none absolute inset-y-0 w-0.5 bg-white/90"
+              className="pointer-events-none absolute inset-y-0 w-px bg-ink"
               style={{ left: `${slider}%` }}
-            />
+            >
+              <span className="absolute left-1/2 top-1/2 flex h-8 w-8 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-surface-raised text-[10px] font-medium text-ink">
+                ⋮
+              </span>
+            </div>
           </div>
           <label className="mx-auto flex max-w-2xl items-center gap-3 text-xs text-ink-muted">
             Antes
@@ -309,7 +227,6 @@ export function PacienteFotosPainel({
           midias={items}
           pacienteId={paciente.id}
           redirectTo={redirectTo}
-          emptyHint="Use o formulário acima ou registre no atendimento do dia."
           emptyCta={{
             href: `/sessoes/nova?paciente=${paciente.id}`,
             label: "Ir ao atendimento",

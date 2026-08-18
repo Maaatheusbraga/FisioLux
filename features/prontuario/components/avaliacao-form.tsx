@@ -1,8 +1,20 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, type ReactNode } from "react";
 import Link from "next/link";
 import type { Avaliacao } from "@prisma/client";
+import {
+  Activity,
+  ClipboardList,
+  HeartPulse,
+  Plus,
+  Scan,
+  ShieldAlert,
+  Stethoscope,
+  StickyNote,
+  Target,
+  Users,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,30 +54,30 @@ type Props = {
 
 function Secao({
   title,
-  defaultOpen = false,
+  icon: Icon,
   children,
 }: {
   title: string;
-  defaultOpen?: boolean;
-  children: React.ReactNode;
+  icon: typeof ClipboardList;
+  children: ReactNode;
 }) {
   return (
     <details
-      open={defaultOpen}
-      className="group rounded-xl border border-border bg-surface-raised"
+      name="ficha-avaliacao"
+      className="group border-b border-border last:border-b-0"
     >
-      <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-ink marker:content-none [&::-webkit-details-marker]:hidden">
-        <span className="flex items-center justify-between gap-2">
-          {title}
-          <span className="text-xs font-normal text-ink-subtle group-open:hidden">
-            Expandir
-          </span>
-          <span className="hidden text-xs font-normal text-ink-subtle group-open:inline">
-            Recolher
-          </span>
+      <summary className="flex cursor-pointer list-none items-center gap-3 px-1 py-3 marker:content-none [&::-webkit-details-marker]:hidden">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <Icon className="h-4 w-4" aria-hidden />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold text-ink">{title}</span>
+        </span>
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border text-ink-muted transition group-open:rotate-45">
+          <Plus className="h-4 w-4" aria-hidden />
         </span>
       </summary>
-      <div className="space-y-4 border-t border-border px-4 py-4">{children}</div>
+      <div className="space-y-4 pb-4 pl-12">{children}</div>
     </details>
   );
 }
@@ -172,7 +184,8 @@ export function AvaliacaoForm({ pacienteId, pacienteNome, avaliacao }: Props) {
         </p>
       ) : null}
 
-      <Secao title="Identificação da avaliação" defaultOpen>
+      <div className="rounded-xl border border-border bg-surface-raised px-4">
+      <Secao title="Identificação da avaliação" icon={ClipboardList}>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="tipo">Tipo *</Label>
@@ -212,7 +225,10 @@ export function AvaliacaoForm({ pacienteId, pacienteNome, avaliacao }: Props) {
         </div>
       </Secao>
 
-      <Secao title="Histórico clínico / HDA" defaultOpen>
+      <Secao
+        title="Histórico clínico / HDA"
+        icon={Stethoscope}
+      >
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="dc_inicio_sintomas">Início dos sintomas</Label>
@@ -307,7 +323,7 @@ export function AvaliacaoForm({ pacienteId, pacienteNome, avaliacao }: Props) {
         </div>
       </Secao>
 
-      <Secao title="Dor" defaultOpen>
+      <Secao title="Dor" icon={Activity}>
         <div className="grid gap-4 md:grid-cols-3">
           <div className="space-y-1.5">
             <Label htmlFor="dc_dor_eva">EVA (0–10)</Label>
@@ -370,7 +386,7 @@ export function AvaliacaoForm({ pacienteId, pacienteNome, avaliacao }: Props) {
         </div>
       </Secao>
 
-      <Secao title="Comorbidades e medicações">
+      <Secao title="Comorbidades e medicações" icon={HeartPulse}>
         <div className="space-y-2">
           <Label>Condições</Label>
           <CheckboxGroup
@@ -398,11 +414,7 @@ export function AvaliacaoForm({ pacienteId, pacienteNome, avaliacao }: Props) {
         </div>
       </Secao>
 
-      <Secao title="Contexto (familiar, social e hábitos)">
-        <p className="text-xs text-ink-subtle">
-          Substitui a antiga anamnese genérica — registre aqui o que for
-          relevante ao plano terapêutico.
-        </p>
+      <Secao title="Contexto (familiar, social e hábitos)" icon={Users}>
         <div className="space-y-1.5">
           <Label htmlFor="dc_historico_familiar">Histórico familiar</Label>
           <Textarea
@@ -443,7 +455,7 @@ export function AvaliacaoForm({ pacienteId, pacienteNome, avaliacao }: Props) {
         </div>
       </Secao>
 
-      <Secao title="Exame físico" defaultOpen>
+      <Secao title="Exame físico" icon={Stethoscope}>
         <div className="space-y-2">
           <Label>Inspeção</Label>
           <CheckboxGroup
@@ -545,7 +557,7 @@ export function AvaliacaoForm({ pacienteId, pacienteNome, avaliacao }: Props) {
         </div>
       </Secao>
 
-      <Secao title="Ultrassonografia">
+      <Secao title="Ultrassonografia" icon={Scan}>
         <CheckboxGroup
           name="dc_us_achados"
           options={US_ACHADOS_OPCOES}
@@ -558,7 +570,10 @@ export function AvaliacaoForm({ pacienteId, pacienteNome, avaliacao }: Props) {
         />
       </Secao>
 
-      <Secao title="Hipótese e procedimento" defaultOpen>
+      <Secao
+        title="Hipótese e procedimento"
+        icon={Target}
+      >
         <div className="space-y-1.5">
           <Label htmlFor="dc_hipotese">Hipótese diagnóstica funcional</Label>
           <Textarea
@@ -602,7 +617,7 @@ export function AvaliacaoForm({ pacienteId, pacienteNome, avaliacao }: Props) {
         </div>
       </Secao>
 
-      <Secao title="Contraindicações verificadas" defaultOpen>
+      <Secao title="Contraindicações verificadas" icon={ShieldAlert}>
         <label className="inline-flex items-center gap-2 text-sm text-ink">
           <input
             type="checkbox"
@@ -622,7 +637,7 @@ export function AvaliacaoForm({ pacienteId, pacienteNome, avaliacao }: Props) {
         ) : null}
       </Secao>
 
-      <Secao title="Observações gerais">
+      <Secao title="Observações gerais" icon={StickyNote}>
         <Textarea
           id="observacoes"
           name="observacoes"
@@ -631,8 +646,9 @@ export function AvaliacaoForm({ pacienteId, pacienteNome, avaliacao }: Props) {
           placeholder="Notas adicionais"
         />
       </Secao>
+      </div>
 
-      <div className="flex flex-wrap gap-3 border-t border-border pt-5">
+      <div className="flex flex-wrap gap-3 pt-1">
         <Button type="submit" disabled={pending}>
           {pending
             ? "Salvando…"

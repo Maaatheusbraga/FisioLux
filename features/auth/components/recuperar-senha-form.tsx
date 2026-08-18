@@ -40,7 +40,6 @@ export function RecuperarSenhaForm() {
           type="email"
           autoComplete="email"
           required
-          placeholder="voce@clinica.com"
         />
       </div>
 

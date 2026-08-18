@@ -42,10 +42,11 @@
 
 ## Prisma × RLS
 
-- App usa Prisma com connection string privilegiada
-- Isolamento **obrigatório** em repositórios (`clinica_id`)
-- Políticas RLS no Postgres como defesa em profundidade (Fase 2)
-- Cliente Supabase no app principalmente para **Auth** (e Storage assinado via service)
+- App usa Prisma com connection string de **owner**. Policies RLS **não** se aplicam a esse papel (sem FORCE, de propósito: senão a app para).
+- Isolamento **obrigatório** em repositórios (`clinica_id`).
+- PostgREST (`anon` / `authenticated`): **REVOKE** nas tabelas públicas. A chave `NEXT_PUBLIC_SUPABASE_ANON_KEY` serve Auth/cookies, não consulta clínica pelo browser.
+- Storage: bucket `fisiolux` privado; upload via service role; leitura autenticada só da pasta `{clinica_id}/`.
+- Cliente Supabase no app: Auth. Storage assinado no server.
 
 ## Rotas
 

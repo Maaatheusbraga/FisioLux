@@ -2,45 +2,47 @@
 
 ## Mood
 
-Quiet clinical instrument — cool teal signal of care on a pure dark workspace for long clinic days.
+Quiet clinical instrument — teal on a light workspace for fluorescent clinic rooms; dark remains available for evening use.
 
 ## Color strategy
 
-Restrained. Neutrals carry the UI; primary teal ≤10% for actions, selection and brand mark.
+Restrained. Neutros carregam a UI; teal ≤10% em ação, seleção e marca.
 
 ## Colors (OKLCH)
 
-### Dark (default)
+Neutros tintados no hue 160 (teal). Sem branco puro: o workspace tem ar clínico, não papel.
+
+### Light (default)
 
 | Token | Value | Role |
 | --- | --- | --- |
-| `--bg` | `oklch(0.145 0 0)` | App background |
-| `--surface` | `oklch(0.185 0.004 160)` | Sidebar / panels |
-| `--surface-raised` | `oklch(0.215 0.005 160)` | Elevated panels |
-| `--border` | `oklch(0.28 0.008 160)` | Hairlines |
-| `--ink` | `oklch(0.96 0.005 160)` | Body text |
-| `--muted` | `oklch(0.68 0.015 160)` | Secondary text |
-| `--subtle` | `oklch(0.52 0.012 160)` | Tertiary / placeholders |
-| `--primary` | `oklch(0.72 0.12 160)` | Brand / CTA |
-| `--primary-fg` | `oklch(0.16 0.02 160)` | Text on primary |
-| `--accent` | `oklch(0.70 0.09 220)` | Links / info |
-| `--danger` | `oklch(0.63 0.19 25)` | Errors |
-| `--success` | `oklch(0.72 0.14 155)` | Success |
+| `--bg` | `oklch(0.965 0.014 160)` | App background |
+| `--surface` | `oklch(0.948 0.02 160)` | Painéis |
+| `--surface-raised` | `oklch(0.985 0.01 160)` | Painéis elevados |
+| `--border` | `oklch(0.86 0.024 160)` | Hairlines |
+| `--ink` | `oklch(0.22 0.025 160)` | Body text |
+| `--muted` | `oklch(0.42 0.03 160)` | Secondary text |
+| `--subtle` | `oklch(0.52 0.025 160)` | Tertiary / placeholders |
+| `--primary` | `oklch(0.45 0.11 160)` | Brand / CTA |
+| `--primary-fg` | `oklch(0.99 0 0)` | Text on primary |
+| `--accent` | `oklch(0.48 0.12 220)` | Links / info |
+| `--danger` | `oklch(0.55 0.19 25)` | Errors |
+| `--success` | `oklch(0.52 0.14 155)` | Success |
 
-### Light
+### Dark
 
 | Token | Value |
 | --- | --- |
-| `--bg` | `oklch(0.99 0 0)` |
-| `--surface` | `oklch(0.97 0.004 160)` |
-| `--surface-raised` | `oklch(1 0 0)` |
-| `--border` | `oklch(0.88 0.008 160)` |
-| `--ink` | `oklch(0.22 0.02 160)` |
-| `--muted` | `oklch(0.45 0.02 160)` |
-| `--subtle` | `oklch(0.55 0.015 160)` |
-| `--primary` | `oklch(0.45 0.11 160)` |
-| `--primary-fg` | `oklch(0.99 0 0)` |
-| `--accent` | `oklch(0.48 0.12 220)` |
+| `--bg` | `oklch(0.155 0.014 160)` |
+| `--surface` | `oklch(0.19 0.018 160)` |
+| `--surface-raised` | `oklch(0.23 0.02 160)` |
+| `--border` | `oklch(0.30 0.022 160)` |
+| `--ink` | `oklch(0.96 0.012 160)` |
+| `--muted` | `oklch(0.70 0.02 160)` |
+| `--subtle` | `oklch(0.55 0.018 160)` |
+| `--primary` | `oklch(0.72 0.12 160)` |
+| `--primary-fg` | `oklch(0.16 0.02 160)` |
+| `--accent` | `oklch(0.70 0.09 220)` |
 
 ## Typography
 

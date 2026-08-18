@@ -24,18 +24,15 @@ function Field({
   label,
   htmlFor,
   children,
-  hint,
 }: {
   label: string;
   htmlFor: string;
   children: React.ReactNode;
-  hint?: string;
 }) {
   return (
     <div className="space-y-1.5">
       <Label htmlFor={htmlFor}>{label}</Label>
       {children}
-      {hint ? <p className="text-xs text-ink-subtle">{hint}</p> : null}
     </div>
   );
 }
@@ -65,11 +62,7 @@ export function ProtocoloForm({ protocolo }: Props) {
             placeholder="Ex.: RPG cervical"
           />
         </Field>
-        <Field
-          label="Tempo estimado (min)"
-          htmlFor="tempo_estimado"
-          hint="Opcional · 1 a 600"
-        >
+        <Field label="Tempo estimado (min)" htmlFor="tempo_estimado">
           <Input
             id="tempo_estimado"
             name="tempo_estimado"
@@ -103,11 +96,7 @@ export function ProtocoloForm({ protocolo }: Props) {
         />
       </Field>
 
-      <Field
-        label="Categorias"
-        htmlFor="categorias"
-        hint="Separe por vírgula (ex.: Ortopedia, RPG)"
-      >
+      <Field label="Categorias" htmlFor="categorias">
         <Input
           id="categorias"
           name="categorias"

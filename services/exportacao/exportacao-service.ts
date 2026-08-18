@@ -59,7 +59,6 @@ export class ExportacaoService {
         medicamentos: paciente.medicamentos,
         alergias: paciente.alergias,
       },
-      anamneses: painel.anamneses,
       avaliacoes: painel.avaliacoes,
       planos: painel.planos,
       evolucoes: painel.evolucoes,

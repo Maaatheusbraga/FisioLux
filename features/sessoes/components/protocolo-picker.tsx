@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { HelpTip } from "@/components/ui/help-tip";
 import { cn } from "@/utils/cn";
 
 type ProtocoloOpt = { id: string; nome: string; tempo_estimado: number | null };
@@ -39,8 +38,7 @@ export function ProtocoloPicker({ protocolos, selectedIds = [] }: Props) {
   if (protocolos.length === 0) {
     return (
       <p className="rounded-lg border border-dashed border-border px-3 py-4 text-sm text-ink-muted">
-        Nenhum protocolo cadastrado. Você pode registrar o atendimento sem
-        vincular protocolos.
+        Nenhum protocolo cadastrado.
       </p>
     );
   }
@@ -49,12 +47,7 @@ export function ProtocoloPicker({ protocolos, selectedIds = [] }: Props) {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-1.5">
-        <p className="text-sm font-semibold text-ink">Protocolos utilizados</p>
-        <HelpTip label="Sobre protocolos">
-          Busque pelo nome e marque os usados neste atendimento. Opcional.
-        </HelpTip>
-      </div>
+      <p className="text-sm font-semibold text-ink">Protocolos utilizados</p>
 
       {/* inputs hidden para o FormData do parent */}
       {Array.from(selecionados).map((id) => (

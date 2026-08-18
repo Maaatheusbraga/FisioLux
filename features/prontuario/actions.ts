@@ -6,7 +6,6 @@ import { exigirSessao } from "@/lib/auth/sessao";
 import { ProntuarioService } from "@/services/prontuario/prontuario-service";
 import {
   altaFormSchema,
-  anamneseFormSchema,
   avaliacaoFormSchema,
   evolucaoFormSchema,
   planoFormSchema,
@@ -39,73 +38,6 @@ function painelPath(pacienteId: string) {
 function revalidatePaciente(pacienteId: string) {
   revalidatePath(`/pacientes/${pacienteId}`);
   revalidatePath("/prontuario");
-}
-
-// ── Anamnese ────────────────────────────────────────────
-
-function anamneseFromForm(formData: FormData) {
-  return {
-    paciente_id: formData.get("paciente_id"),
-    data_anamnese: formData.get("data_anamnese"),
-    queixa_principal: formData.get("queixa_principal") || undefined,
-    historia_doenca_atual: formData.get("historia_doenca_atual") || undefined,
-    historico_familiar: formData.get("historico_familiar") || undefined,
-    historico_social: formData.get("historico_social") || undefined,
-    habitos_vida: formData.get("habitos_vida") || undefined,
-    exames_complementares: formData.get("exames_complementares") || undefined,
-    observacoes: formData.get("observacoes") || undefined,
-  };
-}
-
-export async function criarAnamneseAction(
-  _prev: ProntuarioActionState,
-  formData: FormData,
-): Promise<ProntuarioActionState> {
-  const pacienteId = String(formData.get("paciente_id") || "");
-  if (!pacienteId) {
-    return {
-      ok: false,
-      message:
-        "Anamnese genérica descontinuada. Use a Avaliação musculoesquelética.",
-    };
-  }
-  redirect(`/pacientes/${pacienteId}/prontuario/avaliacao/nova`);
-}
-
-export async function atualizarAnamneseAction(
-  _prev: ProntuarioActionState,
-  formData: FormData,
-): Promise<ProntuarioActionState> {
-  const id = String(formData.get("id") || "");
-  if (!id) return { ok: false, message: "Anamnese inválida." };
-  const parsed = anamneseFormSchema.safeParse(anamneseFromForm(formData));
-  if (!parsed.success) {
-    return {
-      ok: false,
-      message: parsed.error.issues[0]?.message ?? "Dados inválidos.",
-    };
-  }
-  try {
-    const sessao = await exigirSessao();
-    await service.atualizarAnamnese(sessao, id, parsed.data);
-    revalidatePaciente(parsed.data.paciente_id);
-    redirect(painelPath(parsed.data.paciente_id));
-  } catch (error) {
-    if (isNextRedirect(error)) throw error;
-    return {
-      ok: false,
-      message: mensagemDeErro(error, "Não foi possível atualizar a anamnese."),
-    };
-  }
-}
-
-export async function excluirAnamneseAction(formData: FormData): Promise<void> {
-  const id = String(formData.get("id") || "");
-  const pacienteId = String(formData.get("paciente_id") || "");
-  const sessao = await exigirSessao();
-  await service.excluirAnamnese(sessao, id, pacienteId);
-  revalidatePaciente(pacienteId);
-  redirect(painelPath(pacienteId));
 }
 
 // ── Avaliação ───────────────────────────────────────────

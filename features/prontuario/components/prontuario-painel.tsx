@@ -4,9 +4,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmForm } from "@/components/ui/confirm-form";
-import { HelpTip } from "@/components/ui/help-tip";
 import {
-  excluirAnamneseAction,
   excluirAvaliacaoAction,
   excluirEvolucaoAction,
   excluirPlanoAction,
@@ -22,13 +20,6 @@ type Props = {
     nome: string;
     status: "em_tratamento" | "alta";
   };
-  /** Registros legados — criação descontinuada (use Avaliação). */
-  anamneses: {
-    id: string;
-    data_anamnese: Date;
-    queixa_principal: string | null;
-    usuario: UsuarioRef;
-  }[];
   avaliacoes: {
     id: string;
     tipo: "inicial" | "periodica";
@@ -66,36 +57,35 @@ function Secao({
   actionLabel,
   children,
   empty,
-  hint,
 }: {
   title: string;
   actionHref?: string;
   actionLabel?: string;
   children: React.ReactNode;
   empty?: boolean;
-  hint?: string;
 }) {
   return (
-    <section className="rounded-xl border border-border bg-surface-raised p-5">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <div className="min-w-0">
-          <h2 className="text-sm font-semibold text-ink">{title}</h2>
-          {hint ? <p className="mt-0.5 text-xs text-ink-subtle">{hint}</p> : null}
-        </div>
+    <details open className="group border-b border-border last:border-b-0">
+      <summary className="flex cursor-pointer list-none items-center gap-3 py-3 marker:content-none [&::-webkit-details-marker]:hidden">
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold text-ink">{title}</span>
+        </span>
         {actionHref && actionLabel ? (
-          <Link href={actionHref}>
+          <Link href={actionHref} onClick={(e) => e.stopPropagation()}>
             <Button type="button" size="sm" variant="secondary">
               {actionLabel}
             </Button>
           </Link>
         ) : null}
+      </summary>
+      <div className="pb-4">
+        {empty ? (
+          <p className="text-sm text-ink-muted">Nenhum registro.</p>
+        ) : (
+          children
+        )}
       </div>
-      {empty ? (
-        <p className="text-sm text-ink-muted">Nenhum registro ainda.</p>
-      ) : (
-        children
-      )}
-    </section>
+    </details>
   );
 }
 
@@ -156,7 +146,6 @@ function ItemRow({
 
 export function ProntuarioPainel({
   paciente,
-  anamneses,
   avaliacoes,
   planos,
   evolucoes,
@@ -167,7 +156,7 @@ export function ProntuarioPainel({
 
   return (
     <div className="space-y-5">
-      <section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-3">
+      <section className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
         <div className="flex items-center gap-2">
           <Badge
             className={
@@ -178,13 +167,6 @@ export function ProntuarioPainel({
           >
             {emAlta ? "Alta" : "Em tratamento"}
           </Badge>
-          <span className="text-sm text-ink-muted">
-            Prontuário clínico · {paciente.nome}
-          </span>
-          <HelpTip label="Sobre o prontuário">
-            Eixo clínico: avaliação → plano → evolução → alta. O atendimento do
-            dia fica em Atendimentos; o histórico automático fica na Timeline.
-          </HelpTip>
         </div>
         <div className="flex flex-wrap gap-2">
           <Link href={`${base}/avaliacao/nova`}>
@@ -215,6 +197,7 @@ export function ProntuarioPainel({
         </div>
       </section>
 
+      <div className="rounded-xl border border-border bg-surface-raised px-4">
       <Secao
         title="Avaliações musculoesqueléticas"
         actionHref={`${base}/avaliacao/nova`}
@@ -297,28 +280,7 @@ export function ProntuarioPainel({
           </div>
         ))}
       </Secao>
-
-      {anamneses.length > 0 ? (
-        <Secao
-          title="Anamneses (legado)"
-          hint="Criação descontinuada — novos intakes vão na Avaliação. Mantido só para registros antigos."
-          empty={false}
-        >
-          {anamneses.map((a) => (
-            <ItemRow
-              key={a.id}
-              titulo={formatarDataBr(a.data_anamnese)}
-              meta={`${a.usuario.nome}${a.queixa_principal ? ` · ${a.queixa_principal}` : ""}`}
-              editarHref={`${base}/anamnese/${a.id}/editar`}
-              onExcluir={{
-                action: excluirAnamneseAction,
-                id: a.id,
-                pacienteId: paciente.id,
-              }}
-            />
-          ))}
-        </Secao>
-      ) : null}
+      </div>
     </div>
   );
 }

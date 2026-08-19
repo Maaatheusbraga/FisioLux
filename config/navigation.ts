@@ -2,6 +2,7 @@ import type { Permissao } from "@/lib/auth/permissoes";
 import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
+  CalendarDays,
   Users,
   FolderOpen,
   UserCog,
@@ -49,6 +50,14 @@ export const navegacaoPrincipal: NavItem[] = [
     disponivel: true,
     fase: 5,
     grupo: "clinico",
+  },
+  {
+    title: "Agenda",
+    href: "/agenda",
+    icon: CalendarDays,
+    disponivel: true,
+    grupo: "clinico",
+    dica: "Agenda da clínica via Google Calendar",
   },
   {
     title: "Documentos",

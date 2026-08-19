@@ -9,6 +9,7 @@ import { PacienteAbas } from "@/features/pacientes/components/paciente-abas";
 import { ProntuarioPainel } from "@/features/prontuario/components/prontuario-painel";
 import { PacienteArquivosPainel } from "@/features/arquivos/components/paciente-arquivos-painel";
 import { PacienteFotosPainel } from "@/features/arquivos/components/paciente-fotos-painel";
+import { PacienteAgendaPainel } from "@/features/agenda/components/paciente-agenda-painel";
 import { TimelineFiltros } from "@/features/timeline/components/timeline-filtros";
 import { TimelineLista } from "@/features/timeline/components/timeline-lista";
 import { excluirPacienteAction } from "@/features/pacientes/actions";
@@ -18,6 +19,7 @@ import { PacienteService } from "@/services/pacientes/paciente-service";
 import { TimelineService } from "@/services/timeline/timeline-service";
 import { ProntuarioService } from "@/services/prontuario/prontuario-service";
 import { ArquivoService } from "@/services/arquivos/arquivo-service";
+import { AgendaService } from "@/services/agenda/agenda-service";
 import { listarTimelineQuerySchema } from "@/lib/validations/timeline";
 import { AppError } from "@/lib/errors/app-error";
 
@@ -76,6 +78,7 @@ export default async function PacientePage({ params, searchParams }: Props) {
   const timelineService = new TimelineService();
   const prontuarioService = new ProntuarioService();
   const arquivoService = new ArquivoService();
+  const agendaService = new AgendaService();
 
   try {
     const paciente = await pacienteService.obter(sessao, id);
@@ -116,6 +119,11 @@ export default async function PacientePage({ params, searchParams }: Props) {
             page: 1,
             pageSize: 50,
           })
+        : null;
+
+    const agendaHistorico =
+      aba === "agenda"
+        ? await agendaService.listarHistoricoPaciente(sessao, id)
         : null;
 
     const categoriasDocs =
@@ -298,6 +306,10 @@ export default async function PacientePage({ params, searchParams }: Props) {
             categorias={categoriasMidia}
             midias={fotosResult.items}
           />
+        ) : null}
+
+        {aba === "agenda" && agendaHistorico ? (
+          <PacienteAgendaPainel eventos={agendaHistorico} />
         ) : null}
       </div>
     );

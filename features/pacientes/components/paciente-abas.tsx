@@ -6,7 +6,8 @@ export type PacienteAba =
   | "cadastro"
   | "prontuario"
   | "arquivos"
-  | "fotos";
+  | "fotos"
+  | "agenda";
 
 type Props = {
   pacienteId: string;
@@ -39,6 +40,7 @@ export function PacienteAbas({
 
   const abas: { id: PacienteAba; label: string }[] = [
     { id: "timeline", label: "Timeline" },
+    { id: "agenda", label: "Agenda" },
     { id: "cadastro", label: "Dados" },
     ...(mostrarProntuario
       ? [{ id: "prontuario" as const, label: "Prontuário" }]

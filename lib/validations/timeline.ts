@@ -12,7 +12,7 @@ export const listarTimelineQuerySchema = z.object({
   ate: optionalDate,
   page: z.coerce.number().int().min(1).optional().default(1),
   aba: z
-    .enum(["timeline", "cadastro", "prontuario", "arquivos", "fotos"])
+    .enum(["timeline", "cadastro", "prontuario", "arquivos", "fotos", "agenda"])
     .optional()
     .default("timeline"),
 });

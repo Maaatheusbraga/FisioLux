@@ -35,6 +35,7 @@
     "@supabase/supabase-js": "^2.54.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "googleapis": "^176.0.0",
     "lucide-react": "^1.30.0",
     "next": "^15.5.23",
     "pdf-lib": "^1.17.1",

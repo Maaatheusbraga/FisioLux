@@ -7,6 +7,8 @@ const rotasPublicas = [
   "/redefinir-senha",
   "/callback",
   "/api/health",
+  "/api/google-calendar/webhook",
+  "/api/google-calendar/callback",
 ];
 
 function ehRotaPublica(pathname: string) {

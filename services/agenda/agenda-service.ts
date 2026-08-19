@@ -58,7 +58,8 @@ export class AgendaService {
 
   async sincronizarManual(sessao: SessaoUsuario) {
     assertPermissao(sessao.perfil, "pacientes.gerenciar");
-    await this.sincronizarClinica(sessao.clinicaId);
+    const { inicio, fim } = limitesDoDiaBr();
+    await this.sincronizarPeriodo(sessao.clinicaId, inicio, fim);
     return this.obterEstadoAgenda(sessao);
   }
 
@@ -206,6 +207,43 @@ export class AgendaService {
     if (resourceState === "exists") {
       await this.sincronizarClinica(clinicaId);
     }
+  }
+
+  /** Sync rápida por período (botão Sincronizar na UI — só o dia atual). */
+  async sincronizarPeriodo(
+    clinicaId: string,
+    de: Date,
+    ate: Date,
+  ): Promise<void> {
+    const clinica = await this.buscarClinicaAgenda(clinicaId);
+    if (!clinica.agenda_google_refresh_token) {
+      throw new AppError(
+        "Conecte o Google Calendar em Configurações.",
+        "AGENDA_NOT_CONNECTED",
+      );
+    }
+
+    const auth = await this.google.clienteAutenticado(clinica);
+    const calendar = this.google.api(auth);
+    const calendarId = this.google.calendarId(clinica);
+
+    let pageToken: string | undefined;
+    do {
+      const res = await calendar.events.list({
+        calendarId,
+        pageToken,
+        singleEvents: true,
+        timeMin: de.toISOString(),
+        timeMax: ate.toISOString(),
+        maxResults: 250,
+      });
+
+      for (const item of res.data.items ?? []) {
+        await this.aplicarEventoGoogle(clinicaId, calendarId, item);
+      }
+
+      pageToken = res.data.nextPageToken ?? undefined;
+    } while (pageToken);
   }
 
   async sincronizarClinica(clinicaId: string): Promise<void> {

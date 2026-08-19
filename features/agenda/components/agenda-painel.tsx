@@ -134,9 +134,13 @@ export function AgendaPainel({
 
   function sincronizar() {
     startSync(async () => {
-      const res = await sincronizarAgendaAction();
-      setSyncMsg(res.message ?? null);
-      if (res.ok) router.refresh();
+      try {
+        const res = await sincronizarAgendaAction();
+        setSyncMsg(res.message ?? null);
+        if (res.ok) router.refresh();
+      } catch {
+        setSyncMsg("Não foi possível sincronizar. Tente novamente.");
+      }
     });
   }
 

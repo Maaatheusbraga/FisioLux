@@ -25,7 +25,11 @@ export type StorageObject = {
 
 export interface StorageService {
   upload(input: UploadInput): Promise<StorageObject>;
-  getSignedUrl(storageKey: string, expiresInSeconds: number): Promise<string>;
+  getSignedUrl(
+    storageKey: string,
+    expiresInSeconds: number,
+    bucket?: string,
+  ): Promise<string>;
   moveToTrash(storageKey: string): Promise<StorageObject>;
   deletePermanent(storageKey: string): Promise<void>;
   download(storageKey: string): Promise<Buffer>;

@@ -4,7 +4,6 @@ import { EvolucaoForm } from "@/features/prontuario/components/evolucao-form";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { possuiPermissao } from "@/lib/auth/permissoes";
 import { PacienteService } from "@/services/pacientes/paciente-service";
-import { ProntuarioService } from "@/services/prontuario/prontuario-service";
 import { AppError } from "@/lib/errors/app-error";
 
 type Props = {
@@ -18,14 +17,9 @@ export default async function NovaEvolucaoPage({ params }: Props) {
   }
 
   const { id } = await params;
-  const pacienteService = new PacienteService();
-  const prontuarioService = new ProntuarioService();
 
   try {
-    const [paciente, sessoes] = await Promise.all([
-      pacienteService.obter(sessao, id),
-      prontuarioService.listarSessoesParaEvolucao(sessao, id),
-    ]);
+    const paciente = await new PacienteService().obter(sessao, id);
 
     return (
       <div>
@@ -34,7 +28,6 @@ export default async function NovaEvolucaoPage({ params }: Props) {
           <EvolucaoForm
             pacienteId={paciente.id}
             pacienteNome={paciente.nome}
-            sessoes={sessoes}
           />
         </div>
       </div>

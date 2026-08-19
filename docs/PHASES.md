@@ -23,7 +23,7 @@
 
 - Sem módulo de Agenda/calendário
 - Dashboard sem “próximos atendimentos”
-- Sessões = registro clínico no histórico do paciente
+- Atendimentos/sessões **fora da UI** — diário = Evolução (ADR 015)
 
 ## Retomada
 

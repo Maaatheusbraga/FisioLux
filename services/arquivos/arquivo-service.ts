@@ -166,6 +166,7 @@ export class ArquivoService {
     const url = await this.storage.getSignedUrl(
       arquivo.storage_key,
       URL_ASSINADA_SEGUNDOS,
+      arquivo.bucket,
     );
     return { url, expiresIn: URL_ASSINADA_SEGUNDOS, arquivo };
   }

@@ -10,16 +10,16 @@ Profissionais internos de clínicas de fisioterapia: **Administrador**, **Fisiot
 
 ## Product Purpose
 
-O FisioLux registra o trabalho da clínica: cadastro, atendimento do dia, prontuário estruturado, fotos e a jornada do paciente. Após o login o profissional cai no **Início** (leitura rápida da clínica). A ficha do paciente concentra o trabalho. Sem agenda nesta versão.
+O FisioLux registra o trabalho da clínica: cadastro, prontuário estruturado, fotos e a jornada do paciente. Após o login o profissional cai no **Início** (leitura rápida da clínica). A ficha do paciente concentra o trabalho. Sem agenda e sem módulo de Atendimentos nesta versão.
 
 ## Como o dia a dia se divide
 
 | Superfície | O que é | O que não é |
 | --- | --- | --- |
-| **Início** | Números e listas recentes para se orientar ao entrar | O lugar de registrar o atendimento |
-| **Atendimento** | A sessão que aconteceu (ou acontece) naquele dia — procedimentos, dor, mídia | Documento estruturado de avaliação |
+| **Início** | Números e listas recentes para se orientar ao entrar | O lugar de registrar o diário clínico |
 | **Prontuário** | Avaliação, plano, evolução e alta — texto clínico no tempo do tratamento | O log de cada clique no sistema |
-| **Timeline / jornada** | Marcos do tratamento (cadastro, avaliação, sessões, fotos, alta) | Auditoria de edições, exclusões e “cadastro atualizado” |
+| **Evolução** | Diário clínico do dia (dor, nota, observação) | Módulo separado de “atendimento/sessão” |
+| **Timeline / jornada** | Marcos do tratamento (cadastro, avaliação, evolução, fotos, alta) | Auditoria de edições, exclusões e “cadastro atualizado” |
 | **Documentos / Fotos** | Papel e mídia anexados ao paciente | Substitutos do prontuário |
 
 ## Brand Personality

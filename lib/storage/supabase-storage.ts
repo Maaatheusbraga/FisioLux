@@ -84,9 +84,11 @@ export class SupabaseStorageService implements StorageService {
   async getSignedUrl(
     storageKey: string,
     expiresInSeconds: number,
+    bucket?: string,
   ): Promise<string> {
+    const alvo = (bucket ?? this.bucket).trim().toLowerCase();
     const { data, error } = await this.client()
-      .storage.from(this.bucket)
+      .storage.from(alvo)
       .createSignedUrl(storageKey, expiresInSeconds);
 
     if (error || !data?.signedUrl) {

@@ -36,7 +36,6 @@ type Props = {
 };
 
 function hrefEvento(evento: TimelineEventoView, pacienteId?: string) {
-  if (evento.sessao_id) return `/sessoes/${evento.sessao_id}`;
   const pid = pacienteId ?? evento.paciente_id;
   if (!pid) return null;
   if (evento.avaliacao_id) {

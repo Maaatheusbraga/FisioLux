@@ -4,6 +4,6 @@
  */
 export const storageConfig = {
   provider: (process.env.STORAGE_PROVIDER ?? "supabase") as "supabase" | "r2",
-  bucket: process.env.STORAGE_BUCKET ?? "fisiolux",
+  bucket: (process.env.STORAGE_BUCKET ?? "fisiolux").trim().toLowerCase(),
   trashPrefix: "lixeira",
 } as const;

@@ -3,7 +3,6 @@ import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
   Users,
-  Activity,
   ClipboardList,
   FolderOpen,
   UserCog,
@@ -52,16 +51,6 @@ export const navegacaoPrincipal: NavItem[] = [
     disponivel: true,
     fase: 5,
     grupo: "clinico",
-  },
-  {
-    title: "Atendimentos",
-    href: "/sessoes",
-    icon: Activity,
-    permissao: "sessoes.gerenciar",
-    disponivel: true,
-    fase: 7,
-    grupo: "clinico",
-    dica: "Registros clínicos realizados — não é agenda",
   },
   {
     title: "Protocolos",

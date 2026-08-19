@@ -22,10 +22,9 @@ export default async function EditarEvolucaoPage({ params }: Props) {
   const prontuarioService = new ProntuarioService();
 
   try {
-    const [paciente, evolucao, sessoes] = await Promise.all([
+    const [paciente, evolucao] = await Promise.all([
       pacienteService.obter(sessao, id),
       prontuarioService.obterEvolucao(sessao, registroId),
-      prontuarioService.listarSessoesParaEvolucao(sessao, id),
     ]);
     if (evolucao.paciente_id !== paciente.id) notFound();
 
@@ -36,7 +35,6 @@ export default async function EditarEvolucaoPage({ params }: Props) {
           <EvolucaoForm
             pacienteId={paciente.id}
             pacienteNome={paciente.nome}
-            sessoes={sessoes}
             evolucao={evolucao}
           />
         </div>

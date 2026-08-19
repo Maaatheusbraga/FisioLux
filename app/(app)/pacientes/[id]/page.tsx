@@ -149,17 +149,10 @@ export default async function PacientePage({ params, searchParams }: Props) {
                   Editar dados
                 </Button>
               </Link>
-              {possuiPermissao(sessao.perfil, "sessoes.gerenciar") ? (
-                <Link href={`/sessoes/nova?paciente=${paciente.id}`}>
-                  <Button type="button" size="sm">
-                    Registrar atendimento
-                  </Button>
-                </Link>
-              ) : null}
               {possuiPermissao(sessao.perfil, "exportacao.clinica") ? (
                 <a
                   href={`/pacientes/${paciente.id}/exportar`}
-                  title="Avaliações, planos, evoluções, altas e atendimentos recentes — sem fotos nem documentos anexos"
+                  title="Avaliações, planos, evoluções e altas — sem fotos nem documentos anexos"
                 >
                   <Button type="button" variant="secondary" size="sm">
                     PDF clínico
@@ -205,16 +198,12 @@ export default async function PacientePage({ params, searchParams }: Props) {
                 !filtros.de &&
                 !filtros.ate
                   ? [
-                      ...(possuiPermissao(sessao.perfil, "sessoes.gerenciar")
-                        ? [
-                            {
-                              href: `/sessoes/nova?paciente=${paciente.id}`,
-                              label: "Registrar atendimento",
-                            },
-                          ]
-                        : []),
                       ...(podeProntuario
                         ? [
+                            {
+                              href: `/pacientes/${paciente.id}/prontuario/evolucao/nova`,
+                              label: "Nova evolução",
+                            },
                             {
                               href: `/pacientes/${paciente.id}?aba=prontuario`,
                               label: "Abrir prontuário",

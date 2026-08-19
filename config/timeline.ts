@@ -31,11 +31,9 @@ export const TIPOS_EVENTO_JORNADA: tipo_evento_timeline[] = [
   "paciente_criado",
   "avaliacao_criada",
   "plano_terapeutico_criado",
-  "sessao_criada",
   "evolucao_criada",
   "documento_anexado",
   "arquivo_adicionado",
-  "protocolo_vinculado",
   "alta_registrada",
   "tratamento_reaberto",
 ];

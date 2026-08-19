@@ -144,7 +144,7 @@ export function ArquivoUploadForm({
   }
 
   return (
-    <form action={formAction} className="space-y-4" encType="multipart/form-data">
+    <form action={formAction} className="space-y-4">
       {sessaoId ? (
         <input type="hidden" name="sessao_id" value={sessaoId} />
       ) : null}

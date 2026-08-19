@@ -8,8 +8,9 @@ Vocabulário compartilhado do produto. Sem detalhes de implementação.
 | **Usuário** | Pessoa autenticada vinculada a **uma** clínica, com um perfil (Administrador, Fisioterapeuta ou Recepção). |
 | **Paciente** | Pessoa em tratamento na clínica. Identificado por CPF único **dentro** da clínica. |
 | **Timeline** | Linha do tempo cronológica do paciente; centro da experiência. Cada ação relevante gera um evento. |
-| **Evento de timeline** | Registro imutável (na prática) de algo que aconteceu: cadastro, sessão, arquivo, alta, etc. |
-| **Sessão** | Registro clínico de um atendimento realizado (procedimentos, dor, protocolos, anexos). Não é agendamento. |
+| **Evento de timeline** | Registro imutável (na prática) de algo que aconteceu: cadastro, avaliação, evolução, arquivo, alta, etc. |
+| **Evolução** | Registro clínico do dia (diário). Substitui o antigo módulo de Atendimentos/sessões na UI. |
+| **Sessão / Atendimento** | **Deprecado na UI.** Tabela `sessoes` só legado. |
 | **Protocolo** | Modelo reutilizável de tratamento (nome, objetivo, tempo estimado, categorias), escopo da clínica. |
 | **Prontuário** | Conjunto clínico do paciente: **avaliação** (intake principal), plano, evoluções e alta. Anamnese genérica foi deprecada (só legado). |
 | **Alta** | Encerramento do tratamento: gera evento na Timeline e muda status do paciente para `alta` (reabrível). |

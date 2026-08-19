@@ -7,7 +7,7 @@ import { ResumoClinica } from "@/components/dashboard/resumo-clinica";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { possuiPermissao } from "@/lib/auth/permissoes";
 import { DashboardService } from "@/services/dashboard/dashboard-service";
-import { formatarDataBr, formatarDataHoraBr } from "@/utils/date";
+import { formatarDataBr } from "@/utils/date";
 
 export default async function DashboardPage() {
   const sessao = await exigirSessao();
@@ -16,9 +16,7 @@ export default async function DashboardPage() {
   }
 
   const resumo = await new DashboardService().obterResumo(sessao);
-  const clinico =
-    possuiPermissao(sessao.perfil, "sessoes.gerenciar") ||
-    possuiPermissao(sessao.perfil, "prontuario.acessar");
+  const clinico = possuiPermissao(sessao.perfil, "prontuario.acessar");
 
   return (
     <div className="space-y-8">
@@ -32,9 +30,9 @@ export default async function DashboardPage() {
               </Button>
             </Link>
             {clinico ? (
-              <Link href="/sessoes/nova">
+              <Link href="/pacientes">
                 <Button type="button" variant="secondary" size="sm">
-                  Registrar atendimento
+                  Pacientes
                 </Button>
               </Link>
             ) : null}
@@ -45,8 +43,8 @@ export default async function DashboardPage() {
       <ResumoClinica
         emTratamento={resumo.pacientesEmTratamento}
         altas={resumo.pacientesAlta}
-        atendimentos30d={resumo.sessoesRegistradas30d}
-        serie={resumo.atendimentosPorDia}
+        evolucoes30d={resumo.evolucoes30d}
+        serie={resumo.evolucoesPorDia}
       />
 
       <section className={clinico ? "grid gap-6 lg:grid-cols-2" : undefined}>
@@ -100,33 +98,26 @@ export default async function DashboardPage() {
           <div className="rounded-xl border border-border bg-surface-raised">
             <div className="flex items-center justify-between border-b border-border px-5 py-3">
               <h2 className="text-sm font-semibold text-ink">
-                Atendimentos recentes
+                Evoluções recentes
               </h2>
-              <Link
-                href="/sessoes"
-                className="text-xs text-ink-muted hover:text-ink"
-              >
-                Ver todos
-              </Link>
             </div>
             <ul className="divide-y divide-border">
-              {resumo.sessoesRecentes.length === 0 ? (
+              {resumo.evolucoesRecentes.length === 0 ? (
                 <li className="px-5 py-8 text-center text-sm text-ink-muted">
-                  Nenhum atendimento
+                  Nenhuma evolução
                 </li>
               ) : (
-                resumo.sessoesRecentes.map((s) => (
-                  <li key={s.id}>
+                resumo.evolucoesRecentes.map((e) => (
+                  <li key={e.id}>
                     <Link
-                      href={`/sessoes/${s.id}`}
+                      href={`/pacientes/${e.paciente.id}?aba=prontuario`}
                       className="block px-5 py-3 hover:bg-surface/60"
                     >
                       <p className="text-sm font-medium text-ink">
-                        {s.paciente.nome}
+                        {e.paciente.nome}
                       </p>
                       <p className="text-xs text-ink-subtle">
-                        {formatarDataHoraBr(s.realizado_em)} ·{" "}
-                        {s.profissional.nome}
+                        {formatarDataBr(e.data_evolucao)} · {e.usuario.nome}
                       </p>
                     </Link>
                   </li>

@@ -48,20 +48,6 @@ export class ProntuarioRepository {
     return { avaliacoes, planos, evolucoes, altas };
   }
 
-  async listarSessoesParaEvolucao(clinicaId: string, pacienteId: string) {
-    return prisma.sessao.findMany({
-      where: {
-        clinica_id: clinicaId,
-        paciente_id: pacienteId,
-        deleted_at: null,
-        status: "registrada",
-      },
-      select: { id: true, realizado_em: true },
-      orderBy: { realizado_em: "desc" },
-      take: 40,
-    });
-  }
-
   // ── Anamnese ──────────────────────────────────────────
 
   async buscarAnamnese(clinicaId: string, id: string): Promise<Anamnese | null> {

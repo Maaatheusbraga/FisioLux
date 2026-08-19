@@ -135,14 +135,6 @@ export function MidiaGaleria({
                 {m.categoria === "video" ? "Vídeo" : "Foto"}
                 {m.descricao ? ` · ${m.descricao}` : ""}
               </p>
-              {m.sessao_id ? (
-                <Link
-                  href={`/sessoes/${m.sessao_id}`}
-                  className="block text-xs text-primary hover:underline"
-                >
-                  Ver atendimento
-                </Link>
-              ) : null}
               <div className="flex flex-wrap gap-2">
                 <Button
                   type="button"

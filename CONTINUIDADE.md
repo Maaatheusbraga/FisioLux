@@ -1,16 +1,16 @@
 # Continuidade FisioLux — retomar exatamente daqui
 
-> **Última atualização:** 2026-08-11 (noite)  
-> **Branch:** `main` · último commit relevante: `431235d`  
+> **Última atualização:** 2026-08-18  
+> **Branch:** `main`  
 > **Repo:** https://github.com/Maaatheusbraga/FisioLux.git  
-> **Status:** MVP **no ar** na VPS + código mobile-first / anamnese deprecada no GitHub
+> **Status:** MVP no ar; Atendimentos e ultrassom retirados da UI (ADR 015)
 
 ---
 
 ## 1. Produto
 
 Sistema web de gestão para clínicas de fisioterapia com a **Timeline do paciente no centro**.  
-Sessões = registro clínico do atendimento (não agenda).
+Diário clínico = **Evolução**. Atendimentos/sessões saíram da UI.
 
 Perfil de uso: **mais celular/tablet** do que desktop — UI evoluída para mobile-first.
 
@@ -25,7 +25,9 @@ Perfil de uso: **mais celular/tablet** do que desktop — UI evoluída para mobi
 | Mobile-first (shell, cards, touch, abas) | **Entregue** (`2a954e1`) |
 | Foto da câmera espelhada | **Corrigida** (normaliza EXIF + espelho; botão desfazer) |
 | Anamnese genérica | **Deprecada na UI** — intake = Avaliação |
-| Fix build Zod `contexto.default` | **Entregue** (`431235d`) |
+| Atendimentos (sessões) | **Retirados da UI** (ADR 015) — tabela legado |
+| Ultrassom na avaliação | **Retirado da ficha** |
+| Relógio da Timeline | **Corrigido** — instante real, fuso Brasília |
 
 ### Decisão clínica recente (ADR 014 atualizada)
 
@@ -111,11 +113,11 @@ No Supabase Auth → URL Configuration:
 | --- | --- |
 | Início | `/dashboard` |
 | Pacientes + Timeline | `/pacientes` |
-| Atendimentos | `/sessoes` |
-| Protocolos | `/protocolos` |
+| ~~Atendimentos~~ | **Retirado da UI** — `/sessoes` redireciona |
+| Protocolos | `/protocolos` (biblioteca) |
 | Prontuário | `?aba=prontuario` (avaliação, plano, evolução, alta) |
 | Documentos | `/arquivos` + aba Documentos |
-| Fotos/vídeos | aba Fotos + atendimento |
+| Fotos/vídeos | aba Fotos |
 | PDF clínico | `/pacientes/[id]/exportar` |
 | Busca | header (também no mobile) → `/pacientes?q=` |
 | Usuários | `/usuarios` |
@@ -127,6 +129,7 @@ No Supabase Auth → URL Configuration:
 | --- | --- |
 | `docs/DOCKER.md` | Deploy Docker |
 | `docs/adr/014-avaliacao-prioritaria.md` | Avaliação vs anamnese |
+| `docs/adr/015-sem-atendimentos.md` | Sem Atendimentos; evolução = diário |
 | `docs/PHASES.md` / `docs/FASE-*.md` | Histórico de fases |
 | `docs/REVISAO-FINAL.md` | Revisão do MVP |
 | `docs/BACKLOG.md` | Backlog |
@@ -135,10 +138,11 @@ No Supabase Auth → URL Configuration:
 
 ## 8. UX vigente
 
-- Menu: Início, Pacientes, Atendimentos, Protocolos, Documentos, Usuários, Configurações
+- Menu: Início, Pacientes, Protocolos, Documentos, Usuários, Configurações
 - Mobile: drawer, busca no header, listas em cards, abas com scroll, alvos de toque maiores
-- Jobs: Timeline = histórico · Atendimento = dia · Prontuário = clínico · Documentos ≠ Fotos
+- Jobs: Timeline = histórico · Evolução = diário · Prontuário = clínico · Documentos ≠ Fotos
 - PDF = clínico sem anexos/mídia
+- Ultrassom **não** entra na avaliação (pedido do cliente)
 
 ## 9. Próximas evoluções (opcional — não iniciado)
 
@@ -150,7 +154,7 @@ No Supabase Auth → URL Configuration:
 6. Thumbnails no Storage
 7. Domínio + HTTPS (Nginx já existe na VPS)
 8. Job de purga da lixeira
-9. Dashboard “sem atendimento há X dias”
+9. Dashboard “sem evolução há X dias”
 
 ## 10. Armadilhas conhecidas
 

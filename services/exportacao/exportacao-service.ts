@@ -23,27 +23,11 @@ export class ExportacaoService {
       throw new AppError("Paciente não encontrado.", "PACIENTE_NOT_FOUND");
     }
 
-    const [painel, clinica, sessoes] = await Promise.all([
+    const [painel, clinica] = await Promise.all([
       this.prontuario.listarPorPaciente(sessao.clinicaId, pacienteId),
       prisma.clinica.findFirst({
         where: { id: sessao.clinicaId, deleted_at: null },
         select: { nome: true },
-      }),
-      prisma.sessao.findMany({
-        where: {
-          clinica_id: sessao.clinicaId,
-          paciente_id: pacienteId,
-          deleted_at: null,
-          status: "registrada",
-        },
-        orderBy: { realizado_em: "desc" },
-        take: 25,
-        select: {
-          realizado_em: true,
-          procedimentos: true,
-          escala_dor: true,
-          profissional: { select: { nome: true } },
-        },
       }),
     ]);
 
@@ -63,7 +47,6 @@ export class ExportacaoService {
       planos: painel.planos,
       evolucoes: painel.evolucoes,
       altas: painel.altas,
-      sessoes,
     });
 
     const nomeArquivo = paciente.nome

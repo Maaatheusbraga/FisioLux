@@ -8,7 +8,6 @@ import {
   ClipboardList,
   HeartPulse,
   Plus,
-  Scan,
   ShieldAlert,
   Stethoscope,
   StickyNote,
@@ -37,7 +36,6 @@ import {
   MECANISMO_OPCOES,
   OBJETIVO_PROC_OPCOES,
   TRATAMENTOS_PREVIOS_OPCOES,
-  US_ACHADOS_OPCOES,
   parseDadosComplementares,
   triFromBool,
   type DadosComplementaresAvaliacao,
@@ -165,6 +163,7 @@ export function AvaliacaoForm({ pacienteId, pacienteNome, avaliacao }: Props) {
   const [contraNenhuma, setContraNenhuma] = useState(
     dc?.contraindicacoes.nenhuma ?? false,
   );
+  const [recovery, setRecovery] = useState(dc?.recovery ?? false);
 
   return (
     <form action={formAction} className="space-y-4">
@@ -172,10 +171,24 @@ export function AvaliacaoForm({ pacienteId, pacienteNome, avaliacao }: Props) {
       {avaliacao ? <input type="hidden" name="id" value={avaliacao.id} /> : null}
 
       <div className="rounded-xl border border-border bg-surface px-4 py-3">
-        <p className="text-sm font-medium text-ink">
-          Ficha de avaliação musculoesquelética
-        </p>
-        <p className="text-sm text-ink-muted">Paciente: {pacienteNome}</p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-ink">
+              Ficha de avaliação musculoesquelética
+            </p>
+            <p className="text-sm text-ink-muted">Paciente: {pacienteNome}</p>
+          </div>
+          <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-border bg-surface-raised px-3 py-2 text-sm font-medium text-ink has-[:checked]:border-primary/40 has-[:checked]:bg-primary/10">
+            <input
+              type="checkbox"
+              name="dc_recovery"
+              checked={recovery}
+              onChange={(e) => setRecovery(e.target.checked)}
+              className="size-4 accent-[var(--primary)]"
+            />
+            Recovery
+          </label>
+        </div>
       </div>
 
       {state.message ? (
@@ -220,11 +233,17 @@ export function AvaliacaoForm({ pacienteId, pacienteNome, avaliacao }: Props) {
             id="queixa_principal"
             name="queixa_principal"
             rows={3}
+            disabled={recovery}
             defaultValue={avaliacao?.queixa_principal ?? ""}
           />
         </div>
       </Secao>
 
+      <fieldset
+        disabled={recovery}
+        className={cn("min-w-0 border-0 p-0", recovery && "opacity-50")}
+      >
+        <legend className="sr-only">Perguntas da avaliação clínica</legend>
       <Secao
         title="Histórico clínico / HDA"
         icon={Stethoscope}
@@ -557,19 +576,6 @@ export function AvaliacaoForm({ pacienteId, pacienteNome, avaliacao }: Props) {
         </div>
       </Secao>
 
-      <Secao title="Ultrassonografia" icon={Scan}>
-        <CheckboxGroup
-          name="dc_us_achados"
-          options={US_ACHADOS_OPCOES}
-          selected={dc?.ultrassonografia.achados ?? []}
-        />
-        <Input
-          name="dc_us_outro"
-          placeholder="Outro achado"
-          defaultValue={dc?.ultrassonografia.outro ?? ""}
-        />
-      </Secao>
-
       <Secao
         title="Hipótese e procedimento"
         icon={Target}
@@ -636,6 +642,7 @@ export function AvaliacaoForm({ pacienteId, pacienteNome, avaliacao }: Props) {
           />
         ) : null}
       </Secao>
+      </fieldset>
 
       <Secao title="Observações gerais" icon={StickyNote}>
         <Textarea
@@ -643,7 +650,11 @@ export function AvaliacaoForm({ pacienteId, pacienteNome, avaliacao }: Props) {
           name="observacoes"
           rows={3}
           defaultValue={avaliacao?.observacoes ?? ""}
-          placeholder="Notas adicionais"
+          placeholder={
+            recovery
+              ? "Ex.: massagem, bota de compressão…"
+              : "Notas adicionais"
+          }
         />
       </Secao>
       </div>

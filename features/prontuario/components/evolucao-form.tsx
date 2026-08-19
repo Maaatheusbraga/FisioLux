@@ -7,31 +7,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select } from "@/components/ui/select";
 import {
   atualizarEvolucaoAction,
   criarEvolucaoAction,
   type ProntuarioActionState,
 } from "@/features/prontuario/actions";
-import { formatarDataHoraBr, toInputDate } from "@/utils/date";
+import { toInputDate } from "@/utils/date";
 
 const initialState: ProntuarioActionState = { ok: false };
-
-type SessaoOpt = { id: string; realizado_em: Date };
 
 type Props = {
   pacienteId: string;
   pacienteNome: string;
-  sessoes: SessaoOpt[];
   evolucao?: Evolucao;
 };
 
-export function EvolucaoForm({
-  pacienteId,
-  pacienteNome,
-  sessoes,
-  evolucao,
-}: Props) {
+export function EvolucaoForm({ pacienteId, pacienteNome, evolucao }: Props) {
   const editing = Boolean(evolucao);
   const action = editing ? atualizarEvolucaoAction : criarEvolucaoAction;
   const [state, formAction, pending] = useActionState(action, initialState);
@@ -76,22 +67,6 @@ export function EvolucaoForm({
             defaultValue={evolucao?.escala_dor ?? ""}
           />
         </div>
-      </div>
-
-      <div className="space-y-1.5">
-        <Label htmlFor="sessao_id">Sessão vinculada (opcional)</Label>
-        <Select
-          id="sessao_id"
-          name="sessao_id"
-          defaultValue={evolucao?.sessao_id ?? ""}
-        >
-          <option value="">Nenhuma</option>
-          {sessoes.map((s) => (
-            <option key={s.id} value={s.id}>
-              {formatarDataHoraBr(s.realizado_em)}
-            </option>
-          ))}
-        </Select>
       </div>
 
       <div className="space-y-1.5">

@@ -41,14 +41,6 @@ export class ProntuarioService {
     return { paciente, ...dados };
   }
 
-  async listarSessoesParaEvolucao(sessao: SessaoUsuario, pacienteId: string) {
-    await this.exigirPaciente(sessao, pacienteId);
-    return this.prontuario.listarSessoesParaEvolucao(
-      sessao.clinicaId,
-      pacienteId,
-    );
-  }
-
   // ── Avaliação ─────────────────────────────────────────
 
   async obterAvaliacao(sessao: SessaoUsuario, id: string) {
@@ -83,8 +75,10 @@ export class ProntuarioService {
         pacienteId: paciente.id,
         usuarioId: sessao.usuarioId,
         tipo: "avaliacao_criada",
-        descricao: `Avaliação ${input.tipo} registrada para ${paciente.nome}.`,
-        ocorridoEm: registro.data_avaliacao,
+        descricao: input.dados_complementares?.recovery
+          ? `Recovery registrado para ${paciente.nome}.`
+          : `Avaliação ${input.tipo} registrada para ${paciente.nome}.`,
+        ocorridoEm: new Date(),
         avaliacaoId: registro.id,
       });
 
@@ -98,6 +92,31 @@ export class ProntuarioService {
     input: AvaliacaoFormInput,
   ) {
     const paciente = await this.exigirPaciente(sessao, input.paciente_id);
+    const existente = await this.prontuario.buscarAvaliacao(
+      sessao.clinicaId,
+      id,
+    );
+    if (!existente) {
+      throw new AppError("Avaliação não encontrada.", "AVALIACAO_NOT_FOUND");
+    }
+
+    const anterior =
+      existente.dados_complementares &&
+      typeof existente.dados_complementares === "object"
+        ? (existente.dados_complementares as Record<string, unknown>)
+        : {};
+    const recovery = Boolean(input.dados_complementares?.recovery);
+    const dadosComplementares = input.dados_complementares
+      ? recovery
+        ? { ...anterior, recovery: true }
+        : {
+            ...input.dados_complementares,
+            ...(anterior.ultrassonografia
+              ? { ultrassonografia: anterior.ultrassonografia }
+              : {}),
+            recovery: false,
+          }
+      : input.dados_complementares;
 
     return prisma.$transaction(async (tx) => {
       try {
@@ -108,13 +127,20 @@ export class ProntuarioService {
           {
             tipo: input.tipo,
             data_avaliacao: parseDataIso(input.data_avaliacao),
-            queixa_principal: input.queixa_principal ?? null,
-            exame_fisico: input.exame_fisico ?? null,
-            diagnostico_fisioterapeutico:
-              input.diagnostico_fisioterapeutico ?? null,
-            objetivos: input.objetivos ?? null,
+            queixa_principal: recovery
+              ? existente.queixa_principal
+              : (input.queixa_principal ?? null),
+            exame_fisico: recovery
+              ? existente.exame_fisico
+              : (input.exame_fisico ?? null),
+            diagnostico_fisioterapeutico: recovery
+              ? existente.diagnostico_fisioterapeutico
+              : (input.diagnostico_fisioterapeutico ?? null),
+            objetivos: recovery
+              ? existente.objetivos
+              : (input.objetivos ?? null),
             observacoes: input.observacoes ?? null,
-            dados_complementares: input.dados_complementares ?? null,
+            dados_complementares: dadosComplementares ?? null,
           },
         );
 
@@ -194,7 +220,7 @@ export class ProntuarioService {
         usuarioId: sessao.usuarioId,
         tipo: "plano_terapeutico_criado",
         descricao: `Plano terapêutico criado para ${paciente.nome}.`,
-        ocorridoEm: registro.data_plano,
+        ocorridoEm: new Date(),
         planoTerapeuticoId: registro.id,
       });
 
@@ -278,28 +304,8 @@ export class ProntuarioService {
     return item;
   }
 
-  private async validarSessaoOpcional(
-    sessao: SessaoUsuario,
-    pacienteId: string,
-    sessaoId?: string,
-  ) {
-    if (!sessaoId) return;
-    const found = await prisma.sessao.findFirst({
-      where: {
-        id: sessaoId,
-        clinica_id: sessao.clinicaId,
-        paciente_id: pacienteId,
-        deleted_at: null,
-      },
-    });
-    if (!found) {
-      throw new AppError("Sessão inválida para este paciente.", "SESSAO_INVALIDA");
-    }
-  }
-
   async criarEvolucao(sessao: SessaoUsuario, input: EvolucaoFormInput) {
     const paciente = await this.exigirPaciente(sessao, input.paciente_id);
-    await this.validarSessaoOpcional(sessao, paciente.id, input.sessao_id);
 
     return prisma.$transaction(async (tx) => {
       const registro = await this.prontuario.criarEvolucao(tx, {
@@ -310,7 +316,6 @@ export class ProntuarioService {
         descricao: input.descricao,
         escala_dor: input.escala_dor,
         observacoes: input.observacoes,
-        sessao_id: input.sessao_id,
       });
 
       await this.timeline.registrar(tx, {
@@ -321,9 +326,8 @@ export class ProntuarioService {
         descricao: `Evolução registrada para ${paciente.nome}${
           input.escala_dor != null ? ` · dor ${input.escala_dor}/10` : ""
         }.`,
-        ocorridoEm: registro.data_evolucao,
+        ocorridoEm: new Date(),
         evolucaoId: registro.id,
-        sessaoId: input.sessao_id,
       });
 
       return registro;
@@ -336,7 +340,6 @@ export class ProntuarioService {
     input: EvolucaoFormInput,
   ) {
     const paciente = await this.exigirPaciente(sessao, input.paciente_id);
-    await this.validarSessaoOpcional(sessao, paciente.id, input.sessao_id);
 
     return prisma.$transaction(async (tx) => {
       try {
@@ -349,7 +352,6 @@ export class ProntuarioService {
             descricao: input.descricao,
             escala_dor: input.escala_dor ?? null,
             observacoes: input.observacoes ?? null,
-            sessao_id: input.sessao_id ?? null,
           },
         );
 
@@ -360,7 +362,6 @@ export class ProntuarioService {
           tipo: "evolucao_atualizada",
           descricao: `Evolução de ${paciente.nome} atualizada.`,
           evolucaoId: registro.id,
-          sessaoId: input.sessao_id,
         });
 
         return registro;
@@ -442,7 +443,7 @@ export class ProntuarioService {
         descricao: `Alta registrada para ${paciente.nome}${
           input.motivo ? ` · ${input.motivo}` : ""
         }.`,
-        ocorridoEm: registro.data_alta,
+        ocorridoEm: new Date(),
         altaId: registro.id,
       });
 

@@ -4,19 +4,17 @@ export type DashboardResumo = {
   pacientesEmTratamento: number;
   pacientesAlta: number;
   pacientesTotal: number;
-  sessoesRegistradas30d: number;
-  sessoesCanceladas30d: number;
-  sessoesTotal: number;
+  evolucoes30d: number;
   protocolosAtivos: number;
   documentosAtivos: number;
   midiasAtivas: number;
   eventosTimeline7d: number;
-  atendimentosPorDia: { dia: string; total: number }[];
-  sessoesRecentes: {
+  evolucoesPorDia: { dia: string; total: number }[];
+  evolucoesRecentes: {
     id: string;
-    realizado_em: Date;
+    data_evolucao: Date;
     paciente: { id: string; nome: string };
-    profissional: { id: string; nome: string };
+    usuario: { id: string; nome: string };
   }[];
   pacientesRecentes: {
     id: string;
@@ -52,15 +50,13 @@ export class DashboardRepository {
       pacientesEmTratamento,
       pacientesAlta,
       pacientesTotal,
-      sessoesRegistradas30d,
-      sessoesCanceladas30d,
-      sessoesTotal,
+      evolucoes30d,
       protocolosAtivos,
       documentosAtivos,
       midiasAtivas,
       eventosTimeline7d,
-      sessoesPeriodo,
-      sessoesRecentes,
+      evolucoesPeriodo,
+      evolucoesRecentes,
       pacientesRecentes,
     ] = await Promise.all([
       prisma.paciente.count({
@@ -80,24 +76,12 @@ export class DashboardRepository {
       prisma.paciente.count({
         where: { clinica_id: clinicaId, deleted_at: null },
       }),
-      prisma.sessao.count({
+      prisma.evolucao.count({
         where: {
           clinica_id: clinicaId,
           deleted_at: null,
-          status: "registrada",
-          realizado_em: { gte: ha30 },
+          data_evolucao: { gte: ha30 },
         },
-      }),
-      prisma.sessao.count({
-        where: {
-          clinica_id: clinicaId,
-          deleted_at: null,
-          status: "cancelada",
-          realizado_em: { gte: ha30 },
-        },
-      }),
-      prisma.sessao.count({
-        where: { clinica_id: clinicaId, deleted_at: null },
       }),
       prisma.protocolo.count({
         where: { clinica_id: clinicaId, deleted_at: null, ativo: true },
@@ -122,28 +106,26 @@ export class DashboardRepository {
           ocorrido_em: { gte: ha7 },
         },
       }),
-      prisma.sessao.findMany({
+      prisma.evolucao.findMany({
         where: {
           clinica_id: clinicaId,
           deleted_at: null,
-          status: "registrada",
-          realizado_em: { gte: ha30 },
+          data_evolucao: { gte: ha30 },
         },
-        select: { realizado_em: true },
+        select: { data_evolucao: true },
       }),
-      prisma.sessao.findMany({
+      prisma.evolucao.findMany({
         where: {
           clinica_id: clinicaId,
           deleted_at: null,
-          status: "registrada",
         },
-        orderBy: { realizado_em: "desc" },
+        orderBy: { data_evolucao: "desc" },
         take: 8,
         select: {
           id: true,
-          realizado_em: true,
+          data_evolucao: true,
           paciente: { select: { id: true, nome: true } },
-          profissional: { select: { id: true, nome: true } },
+          usuario: { select: { id: true, nome: true } },
         },
       }),
       prisma.paciente.findMany({
@@ -168,8 +150,8 @@ export class DashboardRepository {
       dias.push({ dia: chave, total: 0 });
     }
     const indice = new Map(dias.map((x, i) => [x.dia, i]));
-    for (const s of sessoesPeriodo) {
-      const chave = new Date(s.realizado_em).toISOString().slice(0, 10);
+    for (const e of evolucoesPeriodo) {
+      const chave = new Date(e.data_evolucao).toISOString().slice(0, 10);
       const i = indice.get(chave);
       if (i != null) dias[i]!.total += 1;
     }
@@ -178,15 +160,13 @@ export class DashboardRepository {
       pacientesEmTratamento,
       pacientesAlta,
       pacientesTotal,
-      sessoesRegistradas30d,
-      sessoesCanceladas30d,
-      sessoesTotal,
+      evolucoes30d,
       protocolosAtivos,
       documentosAtivos,
       midiasAtivas,
       eventosTimeline7d,
-      atendimentosPorDia: dias,
-      sessoesRecentes,
+      evolucoesPorDia: dias,
+      evolucoesRecentes,
       pacientesRecentes,
     };
   }

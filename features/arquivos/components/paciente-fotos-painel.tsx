@@ -228,8 +228,8 @@ export function PacienteFotosPainel({
           pacienteId={paciente.id}
           redirectTo={redirectTo}
           emptyCta={{
-            href: `/sessoes/nova?paciente=${paciente.id}`,
-            label: "Ir ao atendimento",
+            href: `/pacientes/${paciente.id}?aba=fotos`,
+            label: "Adicionar foto",
           }}
         />
       </section>

@@ -50,18 +50,15 @@ export type PdfProntuarioInput = {
     data_reabertura: Date | null;
     usuario: UsuarioNome;
   }[];
-  sessoes: {
-    realizado_em: Date;
-    procedimentos: string | null;
-    escala_dor: number | null;
-    profissional: UsuarioNome;
-  }[];
 };
 
 function dadosComplementaresResumo(dados: unknown): string[] {
   if (!dados || typeof dados !== "object") return [];
   const d = dados as Record<string, unknown>;
   const out: string[] = [];
+  if (d.recovery === true) {
+    out.push("Recovery: sim (ficha clínica dispensada)");
+  }
   const push = (label: string, v: unknown) => {
     if (v == null || v === "" || v === false) return;
     if (Array.isArray(v) && v.length === 0) return;
@@ -86,7 +83,6 @@ function dadosComplementaresResumo(dados: unknown): string[] {
   push("Exame", d.exame);
   push("Hipótese", d.hipotese_diagnostica ?? d.hipotese);
   push("Contraindicações", d.contraindicacoes);
-  push("Ultrassom", d.ultrassonografia ?? d.ultrassom);
   return out;
 }
 
@@ -214,17 +210,6 @@ export async function gerarPdfProntuarioPaciente(
       e.escala_dor != null ? `Dor: ${e.escala_dor}/10` : null,
       e.observacoes ? `Observações: ${e.observacoes}` : null,
     ]);
-  }
-
-  if (input.sessoes.length > 0) {
-    secao(
-      "Atendimentos recentes",
-      input.sessoes.slice(0, 25).map((s) => {
-        const dor = s.escala_dor != null ? ` · dor ${s.escala_dor}/10` : "";
-        const proc = s.procedimentos ? ` — ${s.procedimentos}` : "";
-        return `${formatarDataHoraBr(s.realizado_em)} · ${s.profissional.nome}${dor}${proc}`;
-      }),
-    );
   }
 
   for (const a of input.altas) {

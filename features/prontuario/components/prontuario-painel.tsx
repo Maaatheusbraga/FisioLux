@@ -10,7 +10,8 @@ import {
   excluirPlanoAction,
   reabrirTratamentoAction,
 } from "@/features/prontuario/actions";
-import { formatarDataBr, formatarDataHoraBr } from "@/utils/date";
+import { formatarDataBr } from "@/utils/date";
+import { ehRecoveryAvaliacao } from "@/lib/validations/avaliacao-musculoesqueletica";
 
 type UsuarioRef = { id: string; nome: string };
 
@@ -25,6 +26,7 @@ type Props = {
     tipo: "inicial" | "periodica";
     data_avaliacao: Date;
     diagnostico_fisioterapeutico: string | null;
+    dados_complementares?: unknown;
     usuario: UsuarioRef;
   }[];
   planos: {
@@ -207,7 +209,7 @@ export function ProntuarioPainel({
         {avaliacoes.map((a) => (
           <ItemRow
             key={a.id}
-            titulo={`${formatarDataBr(a.data_avaliacao)} · ${a.tipo === "inicial" ? "Inicial" : "Periódica"}`}
+            titulo={`${formatarDataBr(a.data_avaliacao)} · ${a.tipo === "inicial" ? "Inicial" : "Periódica"}${ehRecoveryAvaliacao(a.dados_complementares) ? " · Recovery" : ""}`}
             meta={`${a.usuario.nome}${a.diagnostico_fisioterapeutico ? ` · ${a.diagnostico_fisioterapeutico}` : ""}`}
             editarHref={`${base}/avaliacao/${a.id}/editar`}
             onExcluir={{
@@ -250,7 +252,7 @@ export function ProntuarioPainel({
           <ItemRow
             key={e.id}
             titulo={`${formatarDataBr(e.data_evolucao)}${e.escala_dor != null ? ` · dor ${e.escala_dor}/10` : ""}`}
-            meta={`${e.usuario.nome} · ${e.descricao}${e.sessao ? ` · sessão ${formatarDataHoraBr(e.sessao.realizado_em)}` : ""}`}
+            meta={`${e.usuario.nome} · ${e.descricao}`}
             editarHref={`${base}/evolucao/${e.id}/editar`}
             onExcluir={{
               action: excluirEvolucaoAction,

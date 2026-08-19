@@ -241,7 +241,6 @@ function evolucaoFromForm(formData: FormData) {
     descricao: formData.get("descricao"),
     escala_dor: formData.get("escala_dor") || undefined,
     observacoes: formData.get("observacoes") || undefined,
-    sessao_id: formData.get("sessao_id") || undefined,
   };
 }
 

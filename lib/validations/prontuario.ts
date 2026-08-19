@@ -66,14 +66,6 @@ export const evolucaoFormSchema = z.object({
       "Escala de dor deve ser entre 0 e 10.",
     ),
   observacoes: optionalText,
-  sessao_id: z
-    .string()
-    .optional()
-    .transform((v) => (v && v.length > 0 ? v : undefined))
-    .refine(
-      (v) => v === undefined || z.string().uuid().safeParse(v).success,
-      "Sessão inválida.",
-    ),
 });
 
 export type EvolucaoFormInput = z.infer<typeof evolucaoFormSchema>;

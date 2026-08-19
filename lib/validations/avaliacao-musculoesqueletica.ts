@@ -65,19 +65,6 @@ export const LIMITACAO_ADM_OPCOES = [
   { value: "fraqueza", label: "Fraqueza" },
 ] as const;
 
-export const US_ACHADOS_OPCOES = [
-  { value: "tendinopatia", label: "Tendinopatia" },
-  { value: "rotura_parcial", label: "Rotura parcial" },
-  { value: "rotura_completa", label: "Rotura completa" },
-  { value: "bursite", label: "Bursite" },
-  { value: "sinovite", label: "Sinovite" },
-  { value: "derrame", label: "Derrame" },
-  { value: "calcificacao", label: "Calcificação" },
-  { value: "fibrose", label: "Fibrose" },
-  { value: "espessamento_fascial", label: "Espessamento fascial" },
-  { value: "outro", label: "Outro" },
-] as const;
-
 export const INDICACAO_OPCOES = [
   { value: "tendao", label: "Tendão" },
   { value: "bursa", label: "Bursa" },
@@ -181,10 +168,13 @@ export const dadosComplementaresAvaliacaoSchema = z
       forca_muscular: optionalText,
       testes_especiais: optionalText,
     }),
-    ultrassonografia: z.object({
-      achados: z.array(z.string()).default([]),
-      outro: optionalText,
-    }),
+    /** Legado — não é mais coletado na UI. */
+    ultrassonografia: z
+      .object({
+        achados: z.array(z.string()).default([]),
+        outro: optionalText,
+      })
+      .optional(),
     hipotese_diagnostica: optionalText,
     procedimento: z.object({
       indicacao: z.array(z.string()).default([]),
@@ -196,6 +186,8 @@ export const dadosComplementaresAvaliacaoSchema = z
       nenhuma: z.boolean().default(false),
       itens: z.array(z.string()).default([]),
     }),
+    /** Atendimento só de recovery (massagem, bota, etc.) — ficha clínica dispensada. */
+    recovery: z.boolean().default(false),
   })
   .transform((data) => {
     if (data.contraindicacoes.nenhuma) {
@@ -300,10 +292,6 @@ export function dadosComplementaresFromFormData(formData: FormData) {
       forca_muscular: opt(formData, "dc_forca_muscular"),
       testes_especiais: opt(formData, "dc_testes_especiais"),
     },
-    ultrassonografia: {
-      achados: getAll(formData, "dc_us_achados"),
-      outro: opt(formData, "dc_us_outro"),
-    },
     hipotese_diagnostica: opt(formData, "dc_hipotese"),
     procedimento: {
       indicacao: getAll(formData, "dc_indicacao"),
@@ -315,6 +303,7 @@ export function dadosComplementaresFromFormData(formData: FormData) {
       nenhuma: formData.get("dc_contra_nenhuma") === "on",
       itens: getAll(formData, "dc_contraindicacoes"),
     },
+    recovery: formData.get("dc_recovery") === "on",
   });
 }
 
@@ -330,13 +319,20 @@ export function parseDadosComplementares(
     historico_clinico: {},
     contexto: {},
     exame: {},
-    ultrassonografia: {},
     procedimento: {},
     contraindicacoes: {},
     ...(raw as Record<string, unknown>),
   };
   const parsed = dadosComplementaresAvaliacaoSchema.safeParse(base);
   return parsed.success ? parsed.data : null;
+}
+
+export function ehRecoveryAvaliacao(dados: unknown): boolean {
+  return Boolean(
+    dados &&
+      typeof dados === "object" &&
+      (dados as { recovery?: unknown }).recovery === true,
+  );
 }
 
 export function triFromBool(value: boolean | null | undefined): string {

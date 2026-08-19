@@ -3,7 +3,7 @@ type Ponto = { dia: string; total: number };
 type Props = {
   emTratamento: number;
   altas: number;
-  atendimentos30d: number;
+  evolucoes30d: number;
   serie: Ponto[];
 };
 
@@ -27,7 +27,7 @@ function areaPath(serie: Ponto[], width: number, height: number) {
 export function ResumoClinica({
   emTratamento,
   altas,
-  atendimentos30d,
+  evolucoes30d,
   serie,
 }: Props) {
   const w = 640;
@@ -38,7 +38,7 @@ export function ResumoClinica({
   const linhas = [
     { label: "Em tratamento", valor: String(emTratamento) },
     { label: "Altas", valor: String(altas) },
-    { label: "Atendimentos (30 dias)", valor: String(atendimentos30d) },
+    { label: "Evoluções (30 dias)", valor: String(evolucoes30d) },
   ];
 
   return (
@@ -50,7 +50,7 @@ export function ResumoClinica({
         viewBox={`0 0 ${w} ${h}`}
         className="mt-3 h-24 w-full text-primary"
         role="img"
-        aria-label="Atendimentos por dia nos últimos 30 dias"
+        aria-label="Evoluções por dia nos últimos 30 dias"
       >
         <path d={area} fill="currentColor" className="opacity-15" />
         <path

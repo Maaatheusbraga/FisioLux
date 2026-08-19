@@ -20,7 +20,7 @@ type Props = {
   onNavigate?: () => void;
 };
 
-const ordemGrupos: NavGrupo[] = ["clinico", "biblioteca", "admin"];
+const ordemGrupos: NavGrupo[] = ["clinico", "admin"];
 
 export function SidebarNav({ perfil, onNavigate }: Props) {
   const pathname = usePathname();

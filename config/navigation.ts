@@ -3,13 +3,12 @@ import type { LucideIcon } from "lucide-react";
 import {
   LayoutDashboard,
   Users,
-  ClipboardList,
   FolderOpen,
   UserCog,
   Settings,
 } from "lucide-react";
 
-export type NavGrupo = "clinico" | "biblioteca" | "admin";
+export type NavGrupo = "clinico" | "admin";
 
 export type NavItem = {
   title: string;
@@ -27,7 +26,6 @@ export type NavItem = {
 
 export const labelsGrupoNav: Record<NavGrupo, string> = {
   clinico: "Dia a dia",
-  biblioteca: "Biblioteca",
   admin: "Clínica",
 };
 
@@ -53,22 +51,13 @@ export const navegacaoPrincipal: NavItem[] = [
     grupo: "clinico",
   },
   {
-    title: "Protocolos",
-    href: "/protocolos",
-    icon: ClipboardList,
-    permissao: "protocolos.gerenciar",
-    disponivel: true,
-    fase: 8,
-    grupo: "biblioteca",
-  },
-  {
     title: "Documentos",
     href: "/arquivos",
     icon: FolderOpen,
     permissao: "arquivos.cadastrais",
     disponivel: true,
     fase: 10,
-    grupo: "biblioteca",
+    grupo: "clinico",
     dica: "Consulta de laudos e anexos (upload na ficha do paciente)",
   },
   {

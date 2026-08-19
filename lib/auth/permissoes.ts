@@ -5,6 +5,7 @@ export type Permissao =
   | "usuarios.gerenciar"
   | "clinica.configurar"
   | "pacientes.gerenciar"
+  | "pacientes.excluir"
   | "prontuario.acessar"
   | "timeline.clinica"
   | "sessoes.gerenciar"
@@ -18,6 +19,7 @@ const permissoesPorPerfil: Record<PerfilUsuario, readonly Permissao[]> = {
     "usuarios.gerenciar",
     "clinica.configurar",
     "pacientes.gerenciar",
+    "pacientes.excluir",
     "prontuario.acessar",
     "timeline.clinica",
     "sessoes.gerenciar",

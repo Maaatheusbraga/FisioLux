@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ConfirmForm } from "@/components/ui/confirm-form";
 import { PacienteDetalhe } from "@/features/pacientes/components/paciente-detalhe";
 import { PacienteAbas } from "@/features/pacientes/components/paciente-abas";
 import { ProntuarioPainel } from "@/features/prontuario/components/prontuario-painel";
@@ -10,6 +11,7 @@ import { PacienteArquivosPainel } from "@/features/arquivos/components/paciente-
 import { PacienteFotosPainel } from "@/features/arquivos/components/paciente-fotos-painel";
 import { TimelineFiltros } from "@/features/timeline/components/timeline-filtros";
 import { TimelineLista } from "@/features/timeline/components/timeline-lista";
+import { excluirPacienteAction } from "@/features/pacientes/actions";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { possuiPermissao } from "@/lib/auth/permissoes";
 import { PacienteService } from "@/services/pacientes/paciente-service";
@@ -30,6 +32,7 @@ export default async function PacientePage({ params, searchParams }: Props) {
     redirect("/dashboard");
   }
 
+  const podeExcluir = possuiPermissao(sessao.perfil, "pacientes.excluir");
   const podeProntuario = possuiPermissao(sessao.perfil, "prontuario.acessar");
   const podeArquivos =
     possuiPermissao(sessao.perfil, "arquivos.cadastrais") ||
@@ -149,6 +152,24 @@ export default async function PacientePage({ params, searchParams }: Props) {
                   Editar dados
                 </Button>
               </Link>
+              {podeExcluir ? (
+                <ConfirmForm
+                  action={excluirPacienteAction}
+                  title="Excluir paciente"
+                  message={`Excluir permanentemente "${paciente.nome}"? Esta ação não pode ser desfeita.`}
+                  confirmLabel="Excluir"
+                >
+                  <input type="hidden" name="id" value={paciente.id} />
+                  <Button
+                    type="submit"
+                    variant="ghost"
+                    size="sm"
+                    className="text-danger"
+                  >
+                    Excluir
+                  </Button>
+                </ConfirmForm>
+              ) : null}
               {possuiPermissao(sessao.perfil, "exportacao.clinica") ? (
                 <a
                   href={`/pacientes/${paciente.id}/exportar`}

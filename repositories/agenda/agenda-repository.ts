@@ -3,8 +3,9 @@ import type { AgendaEvento, Prisma } from "@prisma/client";
 
 type Tx = Prisma.TransactionClient;
 
-export type AgendaEventoComPaciente = AgendaEvento & {
+export type AgendaEventoComRelacoes = AgendaEvento & {
   paciente: { id: string; nome: string } | null;
+  usuario: { id: string; nome: string } | null;
 };
 
 export class AgendaRepository {
@@ -12,7 +13,7 @@ export class AgendaRepository {
     clinicaId: string,
     de: Date,
     ate: Date,
-  ): Promise<AgendaEventoComPaciente[]> {
+  ): Promise<AgendaEventoComRelacoes[]> {
     return prisma.agendaEvento.findMany({
       where: {
         clinica_id: clinicaId,
@@ -21,6 +22,7 @@ export class AgendaRepository {
       },
       include: {
         paciente: { select: { id: true, nome: true } },
+        usuario: { select: { id: true, nome: true } },
       },
       orderBy: { inicio: "asc" },
     });
@@ -29,11 +31,12 @@ export class AgendaRepository {
   async buscarPorId(
     id: string,
     clinicaId: string,
-  ): Promise<AgendaEventoComPaciente | null> {
+  ): Promise<AgendaEventoComRelacoes | null> {
     return prisma.agendaEvento.findFirst({
       where: { id, clinica_id: clinicaId, deleted_at: null },
       include: {
         paciente: { select: { id: true, nome: true } },
+        usuario: { select: { id: true, nome: true } },
       },
     });
   }
@@ -91,12 +94,16 @@ export class AgendaRepository {
     clinicaId: string,
     pacienteId: string,
     limite = 100,
-  ): Promise<AgendaEvento[]> {
+  ): Promise<AgendaEventoComRelacoes[]> {
     return prisma.agendaEvento.findMany({
       where: {
         clinica_id: clinicaId,
         paciente_id: pacienteId,
         deleted_at: null,
+      },
+      include: {
+        paciente: { select: { id: true, nome: true } },
+        usuario: { select: { id: true, nome: true } },
       },
       orderBy: { inicio: "desc" },
       take: limite,
@@ -109,6 +116,7 @@ export class AgendaRepository {
     googleEventId: string,
     data: {
       paciente_id?: string | null;
+      usuario_id?: string | null;
       google_calendar_id: string;
       titulo: string;
       descricao?: string | null;
@@ -126,12 +134,17 @@ export class AgendaRepository {
         data.paciente_id !== undefined
           ? data.paciente_id
           : existente.paciente_id;
+      const usuarioId =
+        data.usuario_id !== undefined
+          ? data.usuario_id
+          : existente.usuario_id;
 
       return tx.agendaEvento.update({
         where: { id: existente.id },
         data: {
           ...data,
           paciente_id: pacienteId,
+          usuario_id: usuarioId,
           deleted_at: null,
         },
       });

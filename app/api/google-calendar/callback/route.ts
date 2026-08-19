@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, after, type NextRequest } from "next/server";
 import { verificarEstado } from "@/lib/security/secret-crypto";
 import { GoogleCalendarService } from "@/services/agenda/google-calendar-service";
 import { AgendaService } from "@/services/agenda/agenda-service";
@@ -47,22 +47,25 @@ export async function GET(request: NextRequest) {
     const tokens = await google.trocarCodigoPorTokens(clinicaId, code);
     await google.salvarConexao(clinicaId, tokens);
 
-    const clinicaDb = await prisma.clinica.findUnique({ where: { id: clinicaId } });
-    if (clinicaDb) {
+    // Webhook + sync inicial podem levar minutos — não bloquear o redirect OAuth.
+    after(async () => {
+      const clinicaDb = await prisma.clinica.findUnique({
+        where: { id: clinicaId },
+      });
+      if (!clinicaDb) return;
+
       try {
         await google.registrarWatch(clinicaDb);
       } catch {
-        redirectOk.searchParams.set(
-          "google",
-          "conectado-sem-webhook",
-        );
+        // Webhook opcional; sync manual continua disponível.
       }
+
       try {
         await new AgendaService().sincronizarClinica(clinicaId);
       } catch {
-        // sync inicial opcional
+        // Sync inicial em background; usuário pode clicar Sincronizar na Agenda.
       }
-    }
+    });
 
     return NextResponse.redirect(redirectOk);
   } catch (error) {

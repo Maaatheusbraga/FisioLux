@@ -8,6 +8,7 @@ import { criptografar, descriptografar } from "@/lib/security/secret-crypto";
 const SCOPES = ["https://www.googleapis.com/auth/calendar"];
 export const FISIOLUX_PROP_PACIENTE = "fisiolux_paciente_id";
 export const FISIOLUX_PROP_CLINICA = "fisiolux_clinica_id";
+export const FISIOLUX_PROP_USUARIO = "fisiolux_usuario_id";
 
 export type ClinicaAgendaOAuth = {
   id: string;
@@ -240,9 +241,14 @@ export class GoogleCalendarService {
     return evento.extendedProperties?.private?.[FISIOLUX_PROP_PACIENTE];
   }
 
+  extrairUsuarioId(evento: calendar_v3.Schema$Event): string | undefined {
+    return evento.extendedProperties?.private?.[FISIOLUX_PROP_USUARIO];
+  }
+
   montarEventoGoogle(input: {
     clinicaId: string;
     pacienteId?: string | null;
+    usuarioId?: string | null;
     titulo: string;
     descricao?: string | null;
     inicio: Date;
@@ -253,6 +259,9 @@ export class GoogleCalendarService {
     };
     if (input.pacienteId) {
       privateProps[FISIOLUX_PROP_PACIENTE] = input.pacienteId;
+    }
+    if (input.usuarioId) {
+      privateProps[FISIOLUX_PROP_USUARIO] = input.usuarioId;
     }
 
     return {

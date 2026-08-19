@@ -9,6 +9,7 @@ type EventoItem = {
   descricao: string | null;
   inicio: Date | string;
   fim: Date | string;
+  usuario: { id: string; nome: string } | null;
 };
 
 type Props = {
@@ -57,6 +58,11 @@ export function PacienteAgendaPainel({ eventos }: Props) {
               <p className="mt-1 text-xs text-ink-subtle">
                 {formatarDataHoraBr(ev.inicio)} → {formatarDataHoraBr(ev.fim)}
               </p>
+              {ev.usuario ? (
+                <p className="mt-1 text-xs text-ink-subtle">
+                  Registrado por {ev.usuario.nome}
+                </p>
+              ) : null}
               {ev.descricao ? (
                 <p className="mt-2 text-sm text-ink-muted whitespace-pre-wrap">
                   {ev.descricao}

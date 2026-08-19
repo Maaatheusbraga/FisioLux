@@ -83,6 +83,7 @@ export class AgendaService {
     const body = this.google.montarEventoGoogle({
       clinicaId: sessao.clinicaId,
       pacienteId: input.paciente_id,
+      usuarioId: sessao.usuarioId,
       titulo: input.titulo,
       descricao: input.descricao,
       inicio: input.inicio,
@@ -143,6 +144,7 @@ export class AgendaService {
     const body = this.google.montarEventoGoogle({
       clinicaId: sessao.clinicaId,
       pacienteId: input.paciente_id,
+      usuarioId: local.usuario_id ?? sessao.usuarioId,
       titulo: input.titulo,
       descricao: input.descricao,
       inicio: input.inicio,
@@ -311,9 +313,24 @@ export class AgendaService {
       if (!ok) pacienteId = existente?.paciente_id ?? null;
     }
 
+    const usuarioGoogle = this.google.extrairUsuarioId(evento);
+    let usuarioId: string | null = usuarioGoogle ?? existente?.usuario_id ?? null;
+    if (usuarioId) {
+      const ok = await prisma.usuario.findFirst({
+        where: {
+          id: usuarioId,
+          clinica_id: clinicaId,
+          deleted_at: null,
+        },
+        select: { id: true },
+      });
+      if (!ok) usuarioId = existente?.usuario_id ?? null;
+    }
+
     await prisma.$transaction(async (tx) => {
       await this.agenda.upsertPorGoogle(tx, clinicaId, evento.id!, {
         paciente_id: pacienteId,
+        usuario_id: usuarioId,
         google_calendar_id: calendarId,
         titulo: evento.summary?.trim() || "Sem título",
         descricao: evento.description ?? null,

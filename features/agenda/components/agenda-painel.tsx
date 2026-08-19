@@ -29,6 +29,7 @@ type EventoItem = {
   inicio: Date | string;
   fim: Date | string;
   paciente: { id: string; nome: string } | null;
+  usuario: { id: string; nome: string } | null;
 };
 
 type Props = {
@@ -244,6 +245,11 @@ export function AgendaPainel({
                       >
                         {ev.paciente.nome}
                       </Link>
+                    ) : null}
+                    {ev.usuario ? (
+                      <p className="mt-0.5 text-xs text-ink-subtle">
+                        Criado por {ev.usuario.nome}
+                      </p>
                     ) : null}
                   </div>
                   {conectado ? (

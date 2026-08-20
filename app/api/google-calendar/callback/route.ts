@@ -3,6 +3,7 @@ import { verificarEstado } from "@/lib/security/secret-crypto";
 import { GoogleCalendarService } from "@/services/agenda/google-calendar-service";
 import { AgendaService } from "@/services/agenda/agenda-service";
 import { prisma } from "@/lib/prisma";
+import { AVISO_COOKIE } from "@/lib/feedback/aviso-const";
 
 export async function GET(request: NextRequest) {
   const base = process.env.APP_URL ?? request.nextUrl.origin;
@@ -67,7 +68,13 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    return NextResponse.redirect(redirectOk);
+    const res = NextResponse.redirect(redirectOk);
+    res.cookies.set(
+      AVISO_COOKIE,
+      JSON.stringify({ t: "ok", m: "Google Calendar conectado." }),
+      { path: "/", maxAge: 20, sameSite: "lax" },
+    );
+    return res;
   } catch (error) {
     const msg =
       error instanceof Error ? error.message : "Erro ao conectar Google Calendar.";

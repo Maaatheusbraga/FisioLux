@@ -119,7 +119,7 @@ export class DashboardRepository {
           clinica_id: clinicaId,
           deleted_at: null,
         },
-        orderBy: { data_evolucao: "desc" },
+        orderBy: [{ data_evolucao: "desc" }, { created_at: "desc" }],
         take: 8,
         select: {
           id: true,

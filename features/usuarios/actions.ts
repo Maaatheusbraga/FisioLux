@@ -1,6 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { UsuarioService } from "@/services/usuarios/usuario-service";
@@ -9,6 +8,7 @@ import {
   criarUsuarioSchema,
 } from "@/lib/validations/usuario-clinica";
 import { mensagemDeErro } from "@/lib/errors/app-error";
+import { redirectComAviso } from "@/lib/feedback/aviso";
 
 export type UsuarioActionState = {
   ok: boolean;
@@ -54,7 +54,7 @@ export async function criarUsuarioAction(
     const sessao = await exigirSessao();
     const usuario = await service.criar(sessao, parsed.data);
     revalidatePath("/usuarios");
-    redirect(`/usuarios/${usuario.id}?criado=1`);
+    redirectComAviso(`/usuarios/${usuario.id}`, "Usuário criado.");
   } catch (error) {
     if (isNextRedirect(error)) throw error;
     return {
@@ -89,7 +89,7 @@ export async function atualizarUsuarioAction(
     await service.atualizar(sessao, id, parsed.data);
     revalidatePath("/usuarios");
     revalidatePath(`/usuarios/${id}`);
-    redirect(`/usuarios/${id}`);
+    redirectComAviso(`/usuarios/${id}`, "Usuário atualizado.");
   } catch (error) {
     if (isNextRedirect(error)) throw error;
     return {
@@ -104,5 +104,5 @@ export async function excluirUsuarioAction(formData: FormData): Promise<void> {
   const sessao = await exigirSessao();
   await service.excluir(sessao, id);
   revalidatePath("/usuarios");
-  redirect("/usuarios");
+  redirectComAviso("/usuarios", "Usuário excluído.");
 }

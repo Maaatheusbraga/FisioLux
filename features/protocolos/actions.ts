@@ -1,11 +1,11 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { ProtocoloService } from "@/services/protocolos/protocolo-service";
 import { protocoloFormSchema } from "@/lib/validations/protocolo";
 import { mensagemDeErro } from "@/lib/errors/app-error";
+import { redirectComAviso } from "@/lib/feedback/aviso";
 
 export type ProtocoloActionState = {
   ok: boolean;
@@ -52,7 +52,7 @@ export async function criarProtocoloAction(
     const sessao = await exigirSessao();
     const protocolo = await service.criar(sessao, parsed.data);
     revalidatePath("/protocolos");
-    redirect(`/protocolos/${protocolo.id}`);
+    redirectComAviso(`/protocolos/${protocolo.id}`, "Protocolo criado.");
   } catch (error) {
     if (isNextRedirect(error)) throw error;
     return {
@@ -82,7 +82,7 @@ export async function atualizarProtocoloAction(
     await service.atualizar(sessao, id, parsed.data);
     revalidatePath("/protocolos");
     revalidatePath(`/protocolos/${id}`);
-    redirect(`/protocolos/${id}`);
+    redirectComAviso(`/protocolos/${id}`, "Protocolo atualizado.");
   } catch (error) {
     if (isNextRedirect(error)) throw error;
     return {
@@ -97,5 +97,5 @@ export async function excluirProtocoloAction(formData: FormData): Promise<void> 
   const sessao = await exigirSessao();
   await service.excluir(sessao, id);
   revalidatePath("/protocolos");
-  redirect("/protocolos");
+  redirectComAviso("/protocolos", "Protocolo excluído.");
 }

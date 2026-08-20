@@ -23,12 +23,12 @@ export class ProntuarioRepository {
       prisma.avaliacao.findMany({
         where: whereBase,
         include: { usuario: { select: { id: true, nome: true } } },
-        orderBy: { data_avaliacao: "desc" },
+        orderBy: [{ data_avaliacao: "desc" }, { created_at: "desc" }],
       }),
       prisma.planoTerapeutico.findMany({
         where: whereBase,
         include: { usuario: { select: { id: true, nome: true } } },
-        orderBy: { data_plano: "desc" },
+        orderBy: [{ data_plano: "desc" }, { created_at: "desc" }],
       }),
       prisma.evolucao.findMany({
         where: whereBase,
@@ -36,12 +36,12 @@ export class ProntuarioRepository {
           usuario: { select: { id: true, nome: true } },
           sessao: { select: { id: true, realizado_em: true } },
         },
-        orderBy: { data_evolucao: "desc" },
+        orderBy: [{ data_evolucao: "desc" }, { created_at: "desc" }],
       }),
       prisma.alta.findMany({
         where: { clinica_id: clinicaId, paciente_id: pacienteId },
         include: { usuario: { select: { id: true, nome: true } } },
-        orderBy: { data_alta: "desc" },
+        orderBy: [{ data_alta: "desc" }, { created_at: "desc" }],
       }),
     ]);
 
@@ -304,7 +304,7 @@ export class ProntuarioRepository {
         paciente_id: pacienteId,
         data_reabertura: null,
       },
-      orderBy: { data_alta: "desc" },
+      orderBy: [{ data_alta: "desc" }, { created_at: "desc" }],
     });
   }
 

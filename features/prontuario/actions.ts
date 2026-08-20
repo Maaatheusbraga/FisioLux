@@ -1,6 +1,5 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { ProntuarioService } from "@/services/prontuario/prontuario-service";
@@ -13,6 +12,7 @@ import {
 } from "@/lib/validations/prontuario";
 import { dadosComplementaresFromFormData } from "@/lib/validations/avaliacao-musculoesqueletica";
 import { mensagemDeErro } from "@/lib/errors/app-error";
+import { redirectComAviso } from "@/lib/feedback/aviso";
 
 export type ProntuarioActionState = {
   ok: boolean;
@@ -99,7 +99,7 @@ export async function criarAvaliacaoAction(
       dados_complementares: dc.data,
     });
     revalidatePaciente(parsed.data.paciente_id);
-    redirect(painelPath(parsed.data.paciente_id));
+    redirectComAviso(painelPath(parsed.data.paciente_id), "Avaliação registrada.");
   } catch (error) {
     if (isNextRedirect(error)) throw error;
     return {
@@ -138,7 +138,7 @@ export async function atualizarAvaliacaoAction(
       dados_complementares: dc.data,
     });
     revalidatePaciente(parsed.data.paciente_id);
-    redirect(painelPath(parsed.data.paciente_id));
+    redirectComAviso(painelPath(parsed.data.paciente_id), "Avaliação atualizada.");
   } catch (error) {
     if (isNextRedirect(error)) throw error;
     return {
@@ -154,10 +154,8 @@ export async function excluirAvaliacaoAction(formData: FormData): Promise<void> 
   const sessao = await exigirSessao();
   await service.excluirAvaliacao(sessao, id, pacienteId);
   revalidatePaciente(pacienteId);
-  redirect(painelPath(pacienteId));
+  redirectComAviso(painelPath(pacienteId), "Avaliação excluída.");
 }
-
-// ── Plano ───────────────────────────────────────────────
 
 function planoFromForm(formData: FormData) {
   return {
@@ -186,7 +184,7 @@ export async function criarPlanoAction(
     const sessao = await exigirSessao();
     await service.criarPlano(sessao, parsed.data);
     revalidatePaciente(parsed.data.paciente_id);
-    redirect(painelPath(parsed.data.paciente_id));
+    redirectComAviso(painelPath(parsed.data.paciente_id), "Plano terapêutico registrado.");
   } catch (error) {
     if (isNextRedirect(error)) throw error;
     return {
@@ -213,7 +211,7 @@ export async function atualizarPlanoAction(
     const sessao = await exigirSessao();
     await service.atualizarPlano(sessao, id, parsed.data);
     revalidatePaciente(parsed.data.paciente_id);
-    redirect(painelPath(parsed.data.paciente_id));
+    redirectComAviso(painelPath(parsed.data.paciente_id), "Plano terapêutico atualizado.");
   } catch (error) {
     if (isNextRedirect(error)) throw error;
     return {
@@ -229,10 +227,8 @@ export async function excluirPlanoAction(formData: FormData): Promise<void> {
   const sessao = await exigirSessao();
   await service.excluirPlano(sessao, id, pacienteId);
   revalidatePaciente(pacienteId);
-  redirect(painelPath(pacienteId));
+  redirectComAviso(painelPath(pacienteId), "Plano terapêutico excluído.");
 }
-
-// ── Evolução ────────────────────────────────────────────
 
 function evolucaoFromForm(formData: FormData) {
   return {
@@ -259,9 +255,35 @@ export async function criarEvolucaoAction(
     const sessao = await exigirSessao();
     await service.criarEvolucao(sessao, parsed.data);
     revalidatePaciente(parsed.data.paciente_id);
-    redirect(painelPath(parsed.data.paciente_id));
+    redirectComAviso(painelPath(parsed.data.paciente_id), "Evolução registrada.");
   } catch (error) {
     if (isNextRedirect(error)) throw error;
+    return {
+      ok: false,
+      message: mensagemDeErro(error, "Não foi possível salvar a evolução."),
+    };
+  }
+}
+
+/** Mesma evolução, sem sair da tela (uso na Agenda). */
+export async function criarEvolucaoRapidaAction(
+  _prev: ProntuarioActionState,
+  formData: FormData,
+): Promise<ProntuarioActionState> {
+  const parsed = evolucaoFormSchema.safeParse(evolucaoFromForm(formData));
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message ?? "Dados inválidos.",
+    };
+  }
+  try {
+    const sessao = await exigirSessao();
+    await service.criarEvolucao(sessao, parsed.data);
+    revalidatePaciente(parsed.data.paciente_id);
+    revalidatePath("/agenda");
+    return { ok: true, message: "Evolução registrada." };
+  } catch (error) {
     return {
       ok: false,
       message: mensagemDeErro(error, "Não foi possível salvar a evolução."),
@@ -286,7 +308,7 @@ export async function atualizarEvolucaoAction(
     const sessao = await exigirSessao();
     await service.atualizarEvolucao(sessao, id, parsed.data);
     revalidatePaciente(parsed.data.paciente_id);
-    redirect(painelPath(parsed.data.paciente_id));
+    redirectComAviso(painelPath(parsed.data.paciente_id), "Evolução atualizada.");
   } catch (error) {
     if (isNextRedirect(error)) throw error;
     return {
@@ -302,10 +324,8 @@ export async function excluirEvolucaoAction(formData: FormData): Promise<void> {
   const sessao = await exigirSessao();
   await service.excluirEvolucao(sessao, id, pacienteId);
   revalidatePaciente(pacienteId);
-  redirect(painelPath(pacienteId));
+  redirectComAviso(painelPath(pacienteId), "Evolução excluída.");
 }
-
-// ── Alta ────────────────────────────────────────────────
 
 export async function registrarAltaAction(
   _prev: ProntuarioActionState,
@@ -327,7 +347,7 @@ export async function registrarAltaAction(
     const sessao = await exigirSessao();
     await service.registrarAlta(sessao, parsed.data);
     revalidatePaciente(parsed.data.paciente_id);
-    redirect(painelPath(parsed.data.paciente_id));
+    redirectComAviso(painelPath(parsed.data.paciente_id), "Alta registrada.");
   } catch (error) {
     if (isNextRedirect(error)) throw error;
     return {
@@ -349,5 +369,5 @@ export async function reabrirTratamentoAction(
   const sessao = await exigirSessao();
   await service.reabrirTratamento(sessao, parsed.data.paciente_id);
   revalidatePaciente(parsed.data.paciente_id);
-  redirect(painelPath(parsed.data.paciente_id));
+  redirectComAviso(painelPath(parsed.data.paciente_id), "Tratamento reaberto.");
 }

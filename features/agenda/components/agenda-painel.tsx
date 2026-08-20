@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useState, useTransition, type ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CalendarPlus, Pencil, RefreshCw, Trash2, X } from "lucide-react";
+import { CalendarPlus, Check, ClipboardList, Pencil, RefreshCw, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,11 +16,14 @@ import {
   sincronizarAgendaAction,
   type AgendaActionState,
 } from "@/features/agenda/actions";
+import { criarEvolucaoRapidaAction } from "@/features/prontuario/actions";
 import {
   adicionarHorasDateTimeLocalBr,
   formatarHoraBr,
+  toInputDate,
   toInputDateTimeLocalBr,
 } from "@/utils/date";
+import { useAvisoAcao, useToast } from "@/components/ui/toast";
 
 type EventoItem = {
   id: string;
@@ -79,6 +82,7 @@ export function AgendaPainel({
   embedSrc,
 }: Props) {
   const router = useRouter();
+  const toast = useToast();
   const [criando, setCriando] = useState(false);
   const [inicioNovo, setInicioNovo] = useState("");
   const [fimNovo, setFimNovo] = useState("");
@@ -93,9 +97,14 @@ export function AgendaPainel({
     atualizarAgendaEventoAction,
     initialState,
   );
-  const [syncMsg, setSyncMsg] = useState<string | null>(null);
   const [syncPending, startSync] = useTransition();
   const [excluindoId, setExcluindoId] = useState<string | null>(null);
+  const [evolucaoEvento, setEvolucaoEvento] = useState<EventoItem | null>(null);
+  const [registrados, setRegistrados] = useState<string[]>([]);
+  const [evolucaoMsg, setEvolucaoMsg] = useState<string | null>(null);
+  const [evolucaoPending, startEvolucao] = useTransition();
+  useAvisoAcao(criarState);
+  useAvisoAcao(editState);
 
   function abrirCriar() {
     setInicioNovo("");
@@ -136,10 +145,14 @@ export function AgendaPainel({
     startSync(async () => {
       try {
         const res = await sincronizarAgendaAction();
-        setSyncMsg(res.message ?? null);
-        if (res.ok) router.refresh();
+        if (res.ok) {
+          toast.sucesso(res.message ?? "Agenda sincronizada.");
+          router.refresh();
+        } else {
+          toast.erro(res.message ?? "Não foi possível sincronizar.");
+        }
       } catch {
-        setSyncMsg("Não foi possível sincronizar. Tente novamente.");
+        toast.erro("Não foi possível sincronizar. Tente novamente.");
       }
     });
   }
@@ -148,10 +161,38 @@ export function AgendaPainel({
     if (!confirm("Excluir este evento no Google Calendar?")) return;
     setExcluindoId(id);
     const res = await excluirAgendaEventoAction(id);
-    setSyncMsg(res.message ?? null);
     setExcluindoId(null);
-    if (res.ok) router.refresh();
+    if (res.ok) {
+      toast.sucesso(res.message ?? "Evento excluído.");
+      router.refresh();
+    } else {
+      toast.erro(res.message ?? "Não foi possível excluir o evento.");
+    }
     if (editando?.id === id) setEditando(null);
+  }
+
+  function abrirEvolucao(ev: EventoItem) {
+    setEvolucaoMsg(null);
+    setEvolucaoEvento(ev);
+  }
+
+  function salvarEvolucao(formData: FormData) {
+    const atual = evolucaoEvento;
+    if (!atual?.paciente) return;
+    startEvolucao(async () => {
+      const res = await criarEvolucaoRapidaAction({ ok: false }, formData);
+      if (!res.ok) {
+        setEvolucaoMsg(res.message ?? "Não foi possível salvar a evolução.");
+        toast.erro(res.message ?? "Não foi possível salvar a evolução.");
+        return;
+      }
+      setRegistrados((prev) =>
+        prev.includes(atual.id) ? prev : [...prev, atual.id],
+      );
+      setEvolucaoMsg(null);
+      setEvolucaoEvento(null);
+      toast.sucesso(res.message ?? "Evolução registrada.");
+    });
   }
 
   return (
@@ -199,9 +240,6 @@ export function AgendaPainel({
           >
             {criarState.message}
           </span>
-        ) : null}
-        {syncMsg ? (
-          <span className="text-xs text-ink-subtle">{syncMsg}</span>
         ) : null}
       </div>
 
@@ -255,9 +293,26 @@ export function AgendaPainel({
                         Criado por {ev.usuario.nome}
                       </p>
                     ) : null}
+                    {registrados.includes(ev.id) ? (
+                      <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-primary">
+                        <Check className="h-3 w-3" aria-hidden />
+                        Evolução registrada
+                      </p>
+                    ) : null}
                   </div>
                   {conectado ? (
                     <div className="flex shrink-0 gap-0.5">
+                      {ev.paciente ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => abrirEvolucao(ev)}
+                          aria-label="Nova evolução"
+                        >
+                          <ClipboardList className="h-3.5 w-3.5 text-primary" />
+                        </Button>
+                      ) : null}
                       <Button
                         type="button"
                         variant="ghost"
@@ -429,6 +484,94 @@ export function AgendaPainel({
                 onClick={() => setEditando(null)}
               >
                 Cancelar
+              </Button>
+            </div>
+          </form>
+        </AgendaModal>
+      ) : null}
+
+      {evolucaoEvento?.paciente ? (
+        <AgendaModal
+          title="Nova evolução"
+          onClose={() => {
+            setEvolucaoEvento(null);
+            setEvolucaoMsg(null);
+          }}
+        >
+          <p className="mb-4 text-sm text-ink-muted">
+            {evolucaoEvento.paciente.nome}
+            <span className="mt-0.5 block text-xs text-ink-subtle">
+              {evolucaoEvento.titulo} · {formatarHoraBr(evolucaoEvento.inicio)}
+            </span>
+          </p>
+          {evolucaoMsg ? (
+            <p className="mb-4 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger">
+              {evolucaoMsg}
+            </p>
+          ) : null}
+          <form
+            key={evolucaoEvento.id}
+            action={salvarEvolucao}
+            className="grid gap-4"
+          >
+            <input
+              type="hidden"
+              name="paciente_id"
+              value={evolucaoEvento.paciente.id}
+            />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="data_evolucao_agenda">Data *</Label>
+                <Input
+                  id="data_evolucao_agenda"
+                  name="data_evolucao"
+                  type="date"
+                  required
+                  defaultValue={toInputDate(evolucaoEvento.inicio)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="escala_dor_agenda">Escala de dor (0–10)</Label>
+                <Input
+                  id="escala_dor_agenda"
+                  name="escala_dor"
+                  type="number"
+                  min={0}
+                  max={10}
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="descricao_evolucao_agenda">Descrição *</Label>
+              <Textarea
+                id="descricao_evolucao_agenda"
+                name="descricao"
+                required
+                rows={4}
+                autoFocus
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="obs_evolucao_agenda">Observações</Label>
+              <Textarea
+                id="obs_evolucao_agenda"
+                name="observacoes"
+                rows={2}
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button type="submit" disabled={evolucaoPending}>
+                {evolucaoPending ? "Salvando…" : "Registrar evolução"}
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  setEvolucaoEvento(null);
+                  setEvolucaoMsg(null);
+                }}
+              >
+                Fechar
               </Button>
             </div>
           </form>

@@ -1,11 +1,11 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { PacienteService } from "@/services/pacientes/paciente-service";
 import { pacienteFormSchema } from "@/lib/validations/paciente";
 import { mensagemDeErro } from "@/lib/errors/app-error";
+import { redirectComAviso } from "@/lib/feedback/aviso";
 
 export type PacienteActionState = {
   ok: boolean;
@@ -94,7 +94,7 @@ export async function criarPacienteAction(
     const sessao = await exigirSessao();
     const paciente = await service.criar(sessao, parsed.data);
     revalidatePath("/pacientes");
-    redirect(`/pacientes/${paciente.id}`);
+    redirectComAviso(`/pacientes/${paciente.id}`, "Paciente cadastrado.");
   } catch (error) {
     if (isNextRedirect(error)) throw error;
     return {
@@ -126,7 +126,7 @@ export async function atualizarPacienteAction(
     await service.atualizar(sessao, id, parsed.data);
     revalidatePath("/pacientes");
     revalidatePath(`/pacientes/${id}`);
-    redirect(`/pacientes/${id}`);
+    redirectComAviso(`/pacientes/${id}`, "Paciente atualizado.");
   } catch (error) {
     if (isNextRedirect(error)) throw error;
     return {
@@ -141,5 +141,5 @@ export async function excluirPacienteAction(formData: FormData): Promise<void> {
   const sessao = await exigirSessao();
   await service.excluir(sessao, id);
   revalidatePath("/pacientes");
-  redirect("/pacientes");
+  redirectComAviso("/pacientes", "Paciente excluído.");
 }

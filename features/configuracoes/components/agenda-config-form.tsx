@@ -15,6 +15,7 @@ import {
   type AgendaConfigActionState,
 } from "@/features/configuracoes/actions";
 import { formatarDataHoraBr } from "@/utils/date";
+import { useAvisoAcao } from "@/components/ui/toast";
 
 const initialAgendaState: AgendaConfigActionState = { ok: false };
 const initialDisconnectState: AgendaActionState = { ok: false };
@@ -50,6 +51,8 @@ export function AgendaConfigForm({
     desconectarGoogleAgendaFormAction,
     initialDisconnectState,
   );
+  useAvisoAcao(configState);
+  useAvisoAcao(disconnectState);
 
   const feedback =
     configState.message ??

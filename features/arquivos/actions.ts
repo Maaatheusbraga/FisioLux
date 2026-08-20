@@ -11,6 +11,7 @@ import {
 } from "@/config/arquivos";
 import { mensagemDeErro } from "@/lib/errors/app-error";
 import { caminhoInterno } from "@/lib/navigation/caminho-interno";
+import { definirAviso, redirectComAviso } from "@/lib/feedback/aviso";
 
 export type ArquivoActionState = {
   ok: boolean;
@@ -100,8 +101,15 @@ export async function uploadArquivoAction(
     }
 
     if (redirectTo) {
-      redirect(
-        caminhoInterno(redirectTo, `/pacientes/${parsed.data.paciente_id}`),
+      const destino = caminhoInterno(
+        redirectTo,
+        `/pacientes/${parsed.data.paciente_id}`,
+      );
+      redirectComAviso(
+        destino,
+        enviados === 1
+          ? "Arquivo enviado."
+          : `${enviados} arquivos enviados.`,
       );
     }
 
@@ -135,6 +143,7 @@ export async function excluirArquivoAction(formData: FormData): Promise<void> {
     if (pacienteId) revalidatePath(`/pacientes/${pacienteId}`);
     if (sessaoId) revalidatePath(`/sessoes/${sessaoId}`);
 
+    await definirAviso("Arquivo excluído.");
     redirect(caminhoInterno(redirectTo, "/arquivos"));
   } catch (error) {
     if (isNextRedirect(error)) throw error;

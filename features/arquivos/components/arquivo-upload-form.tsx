@@ -12,6 +12,7 @@ import {
   type ArquivoActionState,
 } from "@/features/arquivos/actions";
 import { MAX_ARQUIVOS_POR_ENVIO } from "@/config/arquivos";
+import { useAvisoAcao } from "@/components/ui/toast";
 import { normalizarFotoClinica } from "@/utils/image-orientacao";
 
 const initialState: ArquivoActionState = { ok: false };
@@ -41,6 +42,7 @@ export function ArquivoUploadForm({
     uploadArquivoAction,
     initialState,
   );
+  useAvisoAcao(state);
   const [categoria, setCategoria] = useState(categorias[0]?.value ?? "");
   const [fonte, setFonte] = useState<FonteArquivo>("galeria");
   const [previews, setPreviews] = useState<PreviewLocal[]>([]);

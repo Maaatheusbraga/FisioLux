@@ -21,5 +21,5 @@ export async function redirectComAviso(
   tipo: AvisoTipo = "ok",
 ): Promise<never> {
   await definirAviso(texto, tipo);
-  redirect(path);
+  return redirect(path);
 }

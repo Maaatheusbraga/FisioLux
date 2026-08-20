@@ -17,16 +17,6 @@ export type UsuarioActionState = {
 
 const service = new UsuarioService();
 
-function isNextRedirect(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "digest" in error &&
-    typeof (error as { digest?: unknown }).digest === "string" &&
-    String((error as { digest: string }).digest).startsWith("NEXT_REDIRECT")
-  );
-}
-
 function formToObject(formData: FormData) {
   return {
     nome: formData.get("nome"),
@@ -50,18 +40,20 @@ export async function criarUsuarioAction(
     };
   }
 
+  let destino: string;
   try {
     const sessao = await exigirSessao();
     const usuario = await service.criar(sessao, parsed.data);
     revalidatePath("/usuarios");
-    redirectComAviso(`/usuarios/${usuario.id}`, "Usuário criado.");
+    destino = `/usuarios/${usuario.id}`;
   } catch (error) {
-    if (isNextRedirect(error)) throw error;
     return {
       ok: false,
       message: mensagemDeErro(error, "Não foi possível criar o usuário."),
     };
   }
+
+  return await redirectComAviso(destino, "Usuário criado.");
 }
 
 export async function atualizarUsuarioAction(
@@ -89,14 +81,14 @@ export async function atualizarUsuarioAction(
     await service.atualizar(sessao, id, parsed.data);
     revalidatePath("/usuarios");
     revalidatePath(`/usuarios/${id}`);
-    redirectComAviso(`/usuarios/${id}`, "Usuário atualizado.");
   } catch (error) {
-    if (isNextRedirect(error)) throw error;
     return {
       ok: false,
       message: mensagemDeErro(error, "Não foi possível atualizar o usuário."),
     };
   }
+
+  return await redirectComAviso(`/usuarios/${id}`, "Usuário atualizado.");
 }
 
 export async function excluirUsuarioAction(formData: FormData): Promise<void> {
@@ -104,5 +96,5 @@ export async function excluirUsuarioAction(formData: FormData): Promise<void> {
   const sessao = await exigirSessao();
   await service.excluir(sessao, id);
   revalidatePath("/usuarios");
-  redirectComAviso("/usuarios", "Usuário excluído.");
+  await redirectComAviso("/usuarios", "Usuário excluído.");
 }

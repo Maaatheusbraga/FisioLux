@@ -14,16 +14,6 @@ export type ProtocoloActionState = {
 
 const service = new ProtocoloService();
 
-function isNextRedirect(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "digest" in error &&
-    typeof (error as { digest?: unknown }).digest === "string" &&
-    String((error as { digest: string }).digest).startsWith("NEXT_REDIRECT")
-  );
-}
-
 function formToObject(formData: FormData) {
   return {
     nome: formData.get("nome"),
@@ -48,18 +38,20 @@ export async function criarProtocoloAction(
     };
   }
 
+  let destino: string;
   try {
     const sessao = await exigirSessao();
     const protocolo = await service.criar(sessao, parsed.data);
     revalidatePath("/protocolos");
-    redirectComAviso(`/protocolos/${protocolo.id}`, "Protocolo criado.");
+    destino = `/protocolos/${protocolo.id}`;
   } catch (error) {
-    if (isNextRedirect(error)) throw error;
     return {
       ok: false,
       message: mensagemDeErro(error, "Não foi possível criar o protocolo."),
     };
   }
+
+  return await redirectComAviso(destino, "Protocolo criado.");
 }
 
 export async function atualizarProtocoloAction(
@@ -82,14 +74,14 @@ export async function atualizarProtocoloAction(
     await service.atualizar(sessao, id, parsed.data);
     revalidatePath("/protocolos");
     revalidatePath(`/protocolos/${id}`);
-    redirectComAviso(`/protocolos/${id}`, "Protocolo atualizado.");
   } catch (error) {
-    if (isNextRedirect(error)) throw error;
     return {
       ok: false,
       message: mensagemDeErro(error, "Não foi possível atualizar o protocolo."),
     };
   }
+
+  return await redirectComAviso(`/protocolos/${id}`, "Protocolo atualizado.");
 }
 
 export async function excluirProtocoloAction(formData: FormData): Promise<void> {
@@ -97,5 +89,5 @@ export async function excluirProtocoloAction(formData: FormData): Promise<void> 
   const sessao = await exigirSessao();
   await service.excluir(sessao, id);
   revalidatePath("/protocolos");
-  redirectComAviso("/protocolos", "Protocolo excluído.");
+  await redirectComAviso("/protocolos", "Protocolo excluído.");
 }

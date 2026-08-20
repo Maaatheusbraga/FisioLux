@@ -21,16 +21,6 @@ export type ProntuarioActionState = {
 
 const service = new ProntuarioService();
 
-function isNextRedirect(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "digest" in error &&
-    typeof (error as { digest?: unknown }).digest === "string" &&
-    String((error as { digest: string }).digest).startsWith("NEXT_REDIRECT")
-  );
-}
-
 function painelPath(pacienteId: string) {
   return `/pacientes/${pacienteId}?aba=prontuario`;
 }
@@ -99,14 +89,17 @@ export async function criarAvaliacaoAction(
       dados_complementares: dc.data,
     });
     revalidatePaciente(parsed.data.paciente_id);
-    redirectComAviso(painelPath(parsed.data.paciente_id), "Avaliação registrada.");
   } catch (error) {
-    if (isNextRedirect(error)) throw error;
     return {
       ok: false,
       message: mensagemDeErro(error, "Não foi possível salvar a avaliação."),
     };
   }
+
+  return await redirectComAviso(
+    painelPath(parsed.data.paciente_id),
+    "Avaliação registrada.",
+  );
 }
 
 export async function atualizarAvaliacaoAction(
@@ -138,14 +131,17 @@ export async function atualizarAvaliacaoAction(
       dados_complementares: dc.data,
     });
     revalidatePaciente(parsed.data.paciente_id);
-    redirectComAviso(painelPath(parsed.data.paciente_id), "Avaliação atualizada.");
   } catch (error) {
-    if (isNextRedirect(error)) throw error;
     return {
       ok: false,
       message: mensagemDeErro(error, "Não foi possível atualizar a avaliação."),
     };
   }
+
+  return await redirectComAviso(
+    painelPath(parsed.data.paciente_id),
+    "Avaliação atualizada.",
+  );
 }
 
 export async function excluirAvaliacaoAction(formData: FormData): Promise<void> {
@@ -154,7 +150,7 @@ export async function excluirAvaliacaoAction(formData: FormData): Promise<void> 
   const sessao = await exigirSessao();
   await service.excluirAvaliacao(sessao, id, pacienteId);
   revalidatePaciente(pacienteId);
-  redirectComAviso(painelPath(pacienteId), "Avaliação excluída.");
+  await redirectComAviso(painelPath(pacienteId), "Avaliação excluída.");
 }
 
 function planoFromForm(formData: FormData) {
@@ -184,14 +180,17 @@ export async function criarPlanoAction(
     const sessao = await exigirSessao();
     await service.criarPlano(sessao, parsed.data);
     revalidatePaciente(parsed.data.paciente_id);
-    redirectComAviso(painelPath(parsed.data.paciente_id), "Plano terapêutico registrado.");
   } catch (error) {
-    if (isNextRedirect(error)) throw error;
     return {
       ok: false,
       message: mensagemDeErro(error, "Não foi possível salvar o plano."),
     };
   }
+
+  return await redirectComAviso(
+    painelPath(parsed.data.paciente_id),
+    "Plano terapêutico registrado.",
+  );
 }
 
 export async function atualizarPlanoAction(
@@ -211,14 +210,17 @@ export async function atualizarPlanoAction(
     const sessao = await exigirSessao();
     await service.atualizarPlano(sessao, id, parsed.data);
     revalidatePaciente(parsed.data.paciente_id);
-    redirectComAviso(painelPath(parsed.data.paciente_id), "Plano terapêutico atualizado.");
   } catch (error) {
-    if (isNextRedirect(error)) throw error;
     return {
       ok: false,
       message: mensagemDeErro(error, "Não foi possível atualizar o plano."),
     };
   }
+
+  return await redirectComAviso(
+    painelPath(parsed.data.paciente_id),
+    "Plano terapêutico atualizado.",
+  );
 }
 
 export async function excluirPlanoAction(formData: FormData): Promise<void> {
@@ -227,7 +229,7 @@ export async function excluirPlanoAction(formData: FormData): Promise<void> {
   const sessao = await exigirSessao();
   await service.excluirPlano(sessao, id, pacienteId);
   revalidatePaciente(pacienteId);
-  redirectComAviso(painelPath(pacienteId), "Plano terapêutico excluído.");
+  await redirectComAviso(painelPath(pacienteId), "Plano terapêutico excluído.");
 }
 
 function evolucaoFromForm(formData: FormData) {
@@ -255,14 +257,17 @@ export async function criarEvolucaoAction(
     const sessao = await exigirSessao();
     await service.criarEvolucao(sessao, parsed.data);
     revalidatePaciente(parsed.data.paciente_id);
-    redirectComAviso(painelPath(parsed.data.paciente_id), "Evolução registrada.");
   } catch (error) {
-    if (isNextRedirect(error)) throw error;
     return {
       ok: false,
       message: mensagemDeErro(error, "Não foi possível salvar a evolução."),
     };
   }
+
+  return await redirectComAviso(
+    painelPath(parsed.data.paciente_id),
+    "Evolução registrada.",
+  );
 }
 
 /** Mesma evolução, sem sair da tela (uso na Agenda). */
@@ -308,14 +313,17 @@ export async function atualizarEvolucaoAction(
     const sessao = await exigirSessao();
     await service.atualizarEvolucao(sessao, id, parsed.data);
     revalidatePaciente(parsed.data.paciente_id);
-    redirectComAviso(painelPath(parsed.data.paciente_id), "Evolução atualizada.");
   } catch (error) {
-    if (isNextRedirect(error)) throw error;
     return {
       ok: false,
       message: mensagemDeErro(error, "Não foi possível atualizar a evolução."),
     };
   }
+
+  return await redirectComAviso(
+    painelPath(parsed.data.paciente_id),
+    "Evolução atualizada.",
+  );
 }
 
 export async function excluirEvolucaoAction(formData: FormData): Promise<void> {
@@ -324,7 +332,7 @@ export async function excluirEvolucaoAction(formData: FormData): Promise<void> {
   const sessao = await exigirSessao();
   await service.excluirEvolucao(sessao, id, pacienteId);
   revalidatePaciente(pacienteId);
-  redirectComAviso(painelPath(pacienteId), "Evolução excluída.");
+  await redirectComAviso(painelPath(pacienteId), "Evolução excluída.");
 }
 
 export async function registrarAltaAction(
@@ -347,14 +355,17 @@ export async function registrarAltaAction(
     const sessao = await exigirSessao();
     await service.registrarAlta(sessao, parsed.data);
     revalidatePaciente(parsed.data.paciente_id);
-    redirectComAviso(painelPath(parsed.data.paciente_id), "Alta registrada.");
   } catch (error) {
-    if (isNextRedirect(error)) throw error;
     return {
       ok: false,
       message: mensagemDeErro(error, "Não foi possível registrar a alta."),
     };
   }
+
+  return await redirectComAviso(
+    painelPath(parsed.data.paciente_id),
+    "Alta registrada.",
+  );
 }
 
 export async function reabrirTratamentoAction(
@@ -369,5 +380,5 @@ export async function reabrirTratamentoAction(
   const sessao = await exigirSessao();
   await service.reabrirTratamento(sessao, parsed.data.paciente_id);
   revalidatePaciente(parsed.data.paciente_id);
-  redirectComAviso(painelPath(parsed.data.paciente_id), "Tratamento reaberto.");
+  await redirectComAviso(painelPath(parsed.data.paciente_id), "Tratamento reaberto.");
 }

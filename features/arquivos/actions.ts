@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { exigirSessao } from "@/lib/auth/sessao";
 import { ArquivoService } from "@/services/arquivos/arquivo-service";
 import { uploadArquivoMetaSchema } from "@/lib/validations/arquivo";
@@ -11,7 +10,7 @@ import {
 } from "@/config/arquivos";
 import { mensagemDeErro } from "@/lib/errors/app-error";
 import { caminhoInterno } from "@/lib/navigation/caminho-interno";
-import { definirAviso, redirectComAviso } from "@/lib/feedback/aviso";
+import { redirectComAviso } from "@/lib/feedback/aviso";
 
 export type ArquivoActionState = {
   ok: boolean;
@@ -19,16 +18,6 @@ export type ArquivoActionState = {
 };
 
 const service = new ArquivoService();
-
-function isNextRedirect(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "digest" in error &&
-    typeof (error as { digest?: unknown }).digest === "string" &&
-    String((error as { digest: string }).digest).startsWith("NEXT_REDIRECT")
-  );
-}
 
 export async function uploadArquivoAction(
   _prev: ArquivoActionState,
@@ -100,28 +89,24 @@ export async function uploadArquivoAction(
       revalidatePath(`/sessoes/${parsed.data.sessao_id}`);
     }
 
+    const mensagemSucesso =
+      enviados === 1
+        ? "Arquivo enviado."
+        : `${enviados} arquivos enviados.`;
+
     if (redirectTo) {
       const destino = caminhoInterno(
         redirectTo,
         `/pacientes/${parsed.data.paciente_id}`,
       );
-      redirectComAviso(
-        destino,
-        enviados === 1
-          ? "Arquivo enviado."
-          : `${enviados} arquivos enviados.`,
-      );
+      return await redirectComAviso(destino, mensagemSucesso);
     }
 
     return {
       ok: true,
-      message:
-        enviados === 1
-          ? "Arquivo enviado."
-          : `${enviados} arquivos enviados.`,
+      message: mensagemSucesso,
     };
   } catch (error) {
-    if (isNextRedirect(error)) throw error;
     return {
       ok: false,
       message: mensagemDeErro(error, "Não foi possível enviar o arquivo."),
@@ -135,20 +120,17 @@ export async function excluirArquivoAction(formData: FormData): Promise<void> {
   const sessaoId = String(formData.get("sessao_id") || "");
   const redirectTo = String(formData.get("redirect_to") || "/arquivos");
 
-  try {
-    const sessao = await exigirSessao();
-    await service.excluir(sessao, id);
+  const sessao = await exigirSessao();
+  await service.excluir(sessao, id);
 
-    revalidatePath("/arquivos");
-    if (pacienteId) revalidatePath(`/pacientes/${pacienteId}`);
-    if (sessaoId) revalidatePath(`/sessoes/${sessaoId}`);
+  revalidatePath("/arquivos");
+  if (pacienteId) revalidatePath(`/pacientes/${pacienteId}`);
+  if (sessaoId) revalidatePath(`/sessoes/${sessaoId}`);
 
-    await definirAviso("Arquivo excluído.");
-    redirect(caminhoInterno(redirectTo, "/arquivos"));
-  } catch (error) {
-    if (isNextRedirect(error)) throw error;
-    throw error;
-  }
+  await redirectComAviso(
+    caminhoInterno(redirectTo, "/arquivos"),
+    "Arquivo excluído.",
+  );
 }
 
 export async function obterUrlAssinadaArquivoAction(

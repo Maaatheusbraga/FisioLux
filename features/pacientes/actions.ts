@@ -40,16 +40,6 @@ function formToObject(formData: FormData) {
   };
 }
 
-function isNextRedirect(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "digest" in error &&
-    typeof (error as { digest?: unknown }).digest === "string" &&
-    String((error as { digest: string }).digest).startsWith("NEXT_REDIRECT")
-  );
-}
-
 export type PacienteBuscaItem = {
   id: string;
   nome: string;
@@ -90,18 +80,20 @@ export async function criarPacienteAction(
     };
   }
 
+  let destino: string;
   try {
     const sessao = await exigirSessao();
     const paciente = await service.criar(sessao, parsed.data);
     revalidatePath("/pacientes");
-    redirectComAviso(`/pacientes/${paciente.id}`, "Paciente cadastrado.");
+    destino = `/pacientes/${paciente.id}`;
   } catch (error) {
-    if (isNextRedirect(error)) throw error;
     return {
       ok: false,
       message: mensagemDeErro(error, "Não foi possível cadastrar o paciente."),
     };
   }
+
+  return await redirectComAviso(destino, "Paciente cadastrado.");
 }
 
 export async function atualizarPacienteAction(
@@ -121,19 +113,21 @@ export async function atualizarPacienteAction(
     };
   }
 
+  let destino: string;
   try {
     const sessao = await exigirSessao();
     await service.atualizar(sessao, id, parsed.data);
     revalidatePath("/pacientes");
     revalidatePath(`/pacientes/${id}`);
-    redirectComAviso(`/pacientes/${id}`, "Paciente atualizado.");
+    destino = `/pacientes/${id}`;
   } catch (error) {
-    if (isNextRedirect(error)) throw error;
     return {
       ok: false,
       message: mensagemDeErro(error, "Não foi possível atualizar o paciente."),
     };
   }
+
+  return await redirectComAviso(destino, "Paciente atualizado.");
 }
 
 export async function excluirPacienteAction(formData: FormData): Promise<void> {
@@ -141,5 +135,5 @@ export async function excluirPacienteAction(formData: FormData): Promise<void> {
   const sessao = await exigirSessao();
   await service.excluir(sessao, id);
   revalidatePath("/pacientes");
-  redirectComAviso("/pacientes", "Paciente excluído.");
+  await redirectComAviso("/pacientes", "Paciente excluído.");
 }

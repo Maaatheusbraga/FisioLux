@@ -4,6 +4,9 @@ import type { OAuth2Client } from "google-auth-library";
 import { prisma } from "@/lib/prisma";
 import { AppError } from "@/lib/errors/app-error";
 import { criptografar, descriptografar } from "@/lib/security/secret-crypto";
+import { redirectUriOAuth } from "@/lib/agenda/oauth-redirect";
+
+export { redirectUriOAuth } from "@/lib/agenda/oauth-redirect";
 
 const SCOPES = ["https://www.googleapis.com/auth/calendar"];
 export const FISIOLUX_PROP_PACIENTE = "fisiolux_paciente_id";
@@ -23,14 +26,6 @@ export type ClinicaAgendaOAuth = {
   agenda_google_watch_resource_id: string | null;
   agenda_google_watch_expira_em: Date | null;
 };
-
-export function redirectUriOAuth() {
-  const base = process.env.APP_URL?.trim().replace(/\/$/, "") ?? "http://localhost:3000";
-  return (
-    process.env.GOOGLE_CALENDAR_REDIRECT_URI?.trim() ||
-    `${base}/api/google-calendar/callback`
-  );
-}
 
 export function resolverCredenciaisOAuth(clinica?: {
   agenda_google_oauth_client_id?: string | null;

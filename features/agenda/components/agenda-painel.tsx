@@ -53,10 +53,24 @@ function AgendaModal({
   onClose: () => void;
   children: ReactNode;
 }) {
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 overscroll-contain"
+      role="presentation"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <section
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-surface-raised p-6 shadow-lg"
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto overscroll-contain rounded-xl border border-border bg-surface-raised p-6 shadow-lg"
         role="dialog"
         aria-modal="true"
         aria-labelledby="agenda-modal-title"
@@ -65,8 +79,14 @@ function AgendaModal({
           <h2 id="agenda-modal-title" className="text-sm font-semibold text-ink">
             {title}
           </h2>
-          <Button type="button" variant="ghost" size="sm" onClick={onClose}>
-            <X className="h-4 w-4" />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            aria-label="Fechar"
+          >
+            <X className="h-4 w-4" aria-hidden />
           </Button>
         </div>
         {children}

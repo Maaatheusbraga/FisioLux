@@ -324,6 +324,7 @@ model Sessao {
   @@index([paciente_id])
   @@index([profissional_id])
   @@index([clinica_id, realizado_em])
+  @@index([paciente_id, realizado_em])
   @@index([deleted_at])
   @@map("sessoes")
 }
@@ -370,6 +371,7 @@ model Anamnese {
 
   @@index([clinica_id])
   @@index([paciente_id])
+  @@index([paciente_id, data_anamnese])
   @@index([deleted_at])
   @@map("anamneses")
 }
@@ -400,6 +402,8 @@ model Avaliacao {
 
   @@index([clinica_id])
   @@index([paciente_id])
+  @@index([paciente_id, data_avaliacao])
+  @@index([clinica_id, data_avaliacao])
   @@index([tipo])
   @@index([deleted_at])
   @@map("avaliacoes")
@@ -428,6 +432,7 @@ model PlanoTerapeutico {
 
   @@index([clinica_id])
   @@index([paciente_id])
+  @@index([paciente_id, data_plano])
   @@index([deleted_at])
   @@map("planos_terapeuticos")
 }
@@ -455,6 +460,8 @@ model Evolucao {
 
   @@index([clinica_id])
   @@index([paciente_id])
+  @@index([paciente_id, data_evolucao])
+  @@index([clinica_id, data_evolucao])
   @@index([sessao_id])
   @@index([deleted_at])
   @@map("evolucoes")
@@ -482,6 +489,7 @@ model Alta {
 
   @@index([clinica_id])
   @@index([paciente_id])
+  @@index([paciente_id, data_alta])
   @@index([data_alta])
   @@map("altas")
 }
@@ -521,6 +529,7 @@ model Arquivo {
   @@index([paciente_id])
   @@index([sessao_id])
   @@index([categoria])
+  @@index([clinica_id, categoria])
   @@index([deleted_at])
   @@map("arquivos")
 }
@@ -560,6 +569,7 @@ model TimelineEvento {
   alta               Alta?             @relation(fields: [alta_id], references: [id], onDelete: SetNull)
 
   @@index([clinica_id])
+  @@index([clinica_id, ocorrido_em])
   @@index([paciente_id, ocorrido_em])
   @@index([tipo])
   @@index([usuario_id])

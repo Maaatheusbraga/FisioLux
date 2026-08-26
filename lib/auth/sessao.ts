@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { UsuarioRepository } from "@/repositories/usuarios/usuario-repository";
 import { AppError } from "@/lib/errors/app-error";
 import type { PerfilUsuario } from "@/types/dominio";
+import { cache } from "react";
 
 export type SessaoUsuario = {
   authUserId: string;
@@ -17,31 +18,34 @@ const usuarioRepository = new UsuarioRepository();
 /**
  * Resolve a sessão autenticada + registro `usuarios` da clínica.
  * Retorna null se não houver Auth ou vínculo ativo no banco.
+ * Deduplicado por request (layout + page).
  */
-export async function obterSessaoAtual(): Promise<SessaoUsuario | null> {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export const obterSessaoAtual = cache(
+  async (): Promise<SessaoUsuario | null> => {
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user) {
-    return null;
-  }
+    if (!user) {
+      return null;
+    }
 
-  const usuario = await usuarioRepository.buscarPorAuthUserId(user.id);
-  if (!usuario) {
-    return null;
-  }
+    const usuario = await usuarioRepository.buscarPorAuthUserId(user.id);
+    if (!usuario) {
+      return null;
+    }
 
-  return {
-    authUserId: user.id,
-    usuarioId: usuario.id,
-    clinicaId: usuario.clinica_id,
-    email: usuario.email,
-    nome: usuario.nome,
-    perfil: usuario.perfil as PerfilUsuario,
-  };
-}
+    return {
+      authUserId: user.id,
+      usuarioId: usuario.id,
+      clinicaId: usuario.clinica_id,
+      email: usuario.email,
+      nome: usuario.nome,
+      perfil: usuario.perfil as PerfilUsuario,
+    };
+  },
+);
 
 /**
  * Exige sessão válida. Use em Server Actions / pages protegidas.

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmForm } from "@/components/ui/confirm-form";
 import { excluirPacienteAction } from "@/features/pacientes/actions";
-import { formatarCpf, formatarRgExibicao, formatarTelefoneExibicao } from "@/utils/cpf";
+import { formatarCpf, formatarTelefoneExibicao } from "@/utils/cpf";
 import { calcularIdade, formatarDataBr } from "@/utils/date";
 
 type Props = {
@@ -47,7 +47,6 @@ export function PacienteDetalhe({ paciente }: Props) {
           <h2 className="text-sm font-semibold text-ink">Cadastro</h2>
           <dl className="mt-2">
             <Row label="CPF" value={formatarCpf(paciente.cpf)} />
-            <Row label="RG" value={formatarRgExibicao(paciente.rg)} />
             <Row label="Sexo" value={paciente.sexo.replaceAll("_", " ")} />
             <Row label="Telefone" value={formatarTelefoneExibicao(paciente.telefone)} />
             <Row label="WhatsApp" value={formatarTelefoneExibicao(paciente.whatsapp)} />

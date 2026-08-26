@@ -156,6 +156,10 @@ export class PacienteRepository {
       where: { clinica_id: clinicaId, paciente_id: id, deleted_at: null },
       data: { deleted_at: agora },
     });
+    await tx.agendaEvento.updateMany({
+      where: { clinica_id: clinicaId, paciente_id: id, deleted_at: null },
+      data: { deleted_at: agora },
+    });
 
     return tx.paciente.update({
       where: { id },

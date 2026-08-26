@@ -194,7 +194,7 @@ export class AgendaService {
     }
 
     await prisma.$transaction(async (tx) => {
-      await this.agenda.softDelete(tx, local.id);
+      await this.agenda.softDelete(tx, sessao.clinicaId, local.id);
     });
   }
 
@@ -323,7 +323,7 @@ export class AgendaService {
       );
       if (existente && !existente.deleted_at) {
         await prisma.$transaction(async (tx) => {
-          await this.agenda.softDelete(tx, existente.id);
+          await this.agenda.softDelete(tx, clinicaId, existente.id);
         });
       }
       return;

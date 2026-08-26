@@ -22,17 +22,42 @@ export class ProntuarioRepository {
     const [avaliacoes, planos, evolucoes, altas] = await Promise.all([
       prisma.avaliacao.findMany({
         where: whereBase,
-        include: { usuario: { select: { id: true, nome: true } } },
+        select: {
+          id: true,
+          tipo: true,
+          data_avaliacao: true,
+          queixa_principal: true,
+          exame_fisico: true,
+          diagnostico_fisioterapeutico: true,
+          objetivos: true,
+          observacoes: true,
+          dados_complementares: true,
+          usuario: { select: { id: true, nome: true } },
+        },
         orderBy: [{ data_avaliacao: "desc" }, { created_at: "desc" }],
       }),
       prisma.planoTerapeutico.findMany({
         where: whereBase,
-        include: { usuario: { select: { id: true, nome: true } } },
+        select: {
+          id: true,
+          data_plano: true,
+          objetivos: true,
+          condutas: true,
+          frequencia_sugerida: true,
+          previsao_sessoes: true,
+          observacoes: true,
+          usuario: { select: { id: true, nome: true } },
+        },
         orderBy: [{ data_plano: "desc" }, { created_at: "desc" }],
       }),
       prisma.evolucao.findMany({
         where: whereBase,
-        include: {
+        select: {
+          id: true,
+          data_evolucao: true,
+          descricao: true,
+          escala_dor: true,
+          observacoes: true,
           usuario: { select: { id: true, nome: true } },
           sessao: { select: { id: true, realizado_em: true } },
         },
@@ -40,7 +65,14 @@ export class ProntuarioRepository {
       }),
       prisma.alta.findMany({
         where: { clinica_id: clinicaId, paciente_id: pacienteId },
-        include: { usuario: { select: { id: true, nome: true } } },
+        select: {
+          id: true,
+          data_alta: true,
+          motivo: true,
+          observacoes: true,
+          data_reabertura: true,
+          usuario: { select: { id: true, nome: true } },
+        },
         orderBy: [{ data_alta: "desc" }, { created_at: "desc" }],
       }),
     ]);

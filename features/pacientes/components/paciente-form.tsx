@@ -14,7 +14,7 @@ import {
   type PacienteActionState,
 } from "@/features/pacientes/actions";
 import { toInputDate } from "@/utils/date";
-import { formatarCpf, formatarRg, formatarTelefone } from "@/utils/cpf";
+import { formatarCpf, formatarTelefone } from "@/utils/cpf";
 
 const initialState: PacienteActionState = { ok: false };
 
@@ -60,7 +60,6 @@ export function PacienteForm({ paciente }: Props) {
   const [state, formAction, pending] = useActionState(action, initialState);
 
   const [cpf, setCpf] = useState(paciente ? formatarCpf(paciente.cpf) : "");
-  const [rg, setRg] = useState(paciente?.rg ? formatarRg(paciente.rg) : "");
   const [telefone, setTelefone] = useState(
     paciente?.telefone ? formatarTelefone(paciente.telefone) : "",
   );
@@ -114,17 +113,6 @@ export function PacienteForm({ paciente }: Props) {
               value={cpf}
               onChange={(e) => setCpf(formatarCpf(e.target.value))}
               maxLength={14}
-            />
-          </Field>
-          <Field label="RG" htmlFor="rg">
-            <Input
-              id="rg"
-              name="rg"
-              autoComplete="off"
-              placeholder="00.000.000-0"
-              value={rg}
-              onChange={(e) => setRg(formatarRg(e.target.value))}
-              maxLength={12}
             />
           </Field>
           <Field label="Sexo" htmlFor="sexo">

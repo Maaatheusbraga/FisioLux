@@ -34,7 +34,6 @@ export const pacienteFormSchema = z.object({
     .transform(apenasDigitos)
     .refine((v) => v.length === 11, "CPF deve ter 11 dígitos.")
     .refine(validarCpf, "CPF inválido."),
-  rg: optionalText,
   sexo: sexoPacienteSchema.default("nao_informado"),
   data_nascimento: z
     .string()

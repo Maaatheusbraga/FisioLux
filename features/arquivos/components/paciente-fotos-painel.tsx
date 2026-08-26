@@ -9,7 +9,6 @@ import { ArquivoUploadForm } from "@/features/arquivos/components/arquivo-upload
 import { MidiaGaleria } from "@/features/arquivos/components/midia-galeria";
 import { obterUrlAssinadaArquivoAction } from "@/features/arquivos/actions";
 import { formatarDataHoraBr } from "@/utils/date";
-import { baixarComparacaoPdf } from "@/utils/comparacao-pdf";
 import type { ArquivoListaItem } from "@/features/arquivos/components/arquivos-lista";
 
 type Props = {
@@ -83,6 +82,7 @@ export function PacienteFotosPainel({
     const depoisItem = fotos.find((f) => f.id === depoisId);
     setExportando(true);
     try {
+      const { baixarComparacaoPdf } = await import("@/utils/comparacao-pdf");
       await baixarComparacaoPdf({
         antesUrl,
         depoisUrl,

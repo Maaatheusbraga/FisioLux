@@ -62,7 +62,6 @@ export class PacienteService {
         clinica_id: sessao.clinicaId,
         nome: input.nome,
         cpf: input.cpf,
-        rg: input.rg,
         sexo: input.sexo,
         data_nascimento: parseDataIso(input.data_nascimento),
         telefone: input.telefone,
@@ -121,7 +120,6 @@ export class PacienteService {
           {
             nome: input.nome,
             cpf: input.cpf,
-            rg: input.rg ?? null,
             sexo: input.sexo,
             data_nascimento: parseDataIso(input.data_nascimento),
             telefone: input.telefone ?? null,

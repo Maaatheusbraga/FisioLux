@@ -1,15 +1,11 @@
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { notFound, redirect } from "next/navigation";
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmForm } from "@/components/ui/confirm-form";
-import { PacienteDetalhe } from "@/features/pacientes/components/paciente-detalhe";
 import { PacienteAbas } from "@/features/pacientes/components/paciente-abas";
-import { ProntuarioPainel } from "@/features/prontuario/components/prontuario-painel";
-import { PacienteArquivosPainel } from "@/features/arquivos/components/paciente-arquivos-painel";
-import { PacienteFotosPainel } from "@/features/arquivos/components/paciente-fotos-painel";
-import { PacienteAgendaPainel } from "@/features/agenda/components/paciente-agenda-painel";
 import { TimelineFiltros } from "@/features/timeline/components/timeline-filtros";
 import { TimelineLista } from "@/features/timeline/components/timeline-lista";
 import { excluirPacienteAction } from "@/features/pacientes/actions";
@@ -23,13 +19,61 @@ import { AgendaService } from "@/services/agenda/agenda-service";
 import { listarTimelineQuerySchema } from "@/lib/validations/timeline";
 import { AppError } from "@/lib/errors/app-error";
 
+const loadingAba = (
+  <p className="text-sm text-ink-muted">Carregando…</p>
+);
+
+const PacienteDetalhe = dynamic(
+  () =>
+    import("@/features/pacientes/components/paciente-detalhe").then(
+      (m) => m.PacienteDetalhe,
+    ),
+  { loading: () => loadingAba },
+);
+
+const ProntuarioPainel = dynamic(
+  () =>
+    import("@/features/prontuario/components/prontuario-painel").then(
+      (m) => m.ProntuarioPainel,
+    ),
+  { loading: () => loadingAba },
+);
+
+const PacienteArquivosPainel = dynamic(
+  () =>
+    import("@/features/arquivos/components/paciente-arquivos-painel").then(
+      (m) => m.PacienteArquivosPainel,
+    ),
+  { loading: () => loadingAba },
+);
+
+const PacienteFotosPainel = dynamic(
+  () =>
+    import("@/features/arquivos/components/paciente-fotos-painel").then(
+      (m) => m.PacienteFotosPainel,
+    ),
+  { loading: () => loadingAba },
+);
+
+const PacienteAgendaPainel = dynamic(
+  () =>
+    import("@/features/agenda/components/paciente-agenda-painel").then(
+      (m) => m.PacienteAgendaPainel,
+    ),
+  { loading: () => loadingAba },
+);
+
 type Props = {
   params: Promise<{ id: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 export default async function PacientePage({ params, searchParams }: Props) {
-  const sessao = await exigirSessao();
+  const [sessao, { id }, raw] = await Promise.all([
+    exigirSessao(),
+    params,
+    searchParams,
+  ]);
   if (!possuiPermissao(sessao.perfil, "pacientes.gerenciar")) {
     redirect("/dashboard");
   }
@@ -40,8 +84,6 @@ export default async function PacientePage({ params, searchParams }: Props) {
     possuiPermissao(sessao.perfil, "arquivos.cadastrais") ||
     possuiPermissao(sessao.perfil, "arquivos.clinicos");
   const podeFotos = possuiPermissao(sessao.perfil, "arquivos.clinicos");
-  const { id } = await params;
-  const raw = await searchParams;
   const query = listarTimelineQuerySchema.safeParse({
     tipo: typeof raw.tipo === "string" ? raw.tipo : undefined,
     profissional:
@@ -82,49 +124,53 @@ export default async function PacientePage({ params, searchParams }: Props) {
 
   try {
     const paciente = await pacienteService.obter(sessao, id);
-    const profissionais = await timelineService.listarProfissionaisFiltro(sessao);
     const tipos = timelineService.tiposDisponiveisParaFiltro(sessao);
 
-    const timeline =
+    const [
+      profissionais,
+      timeline,
+      painel,
+      arquivosResult,
+      fotosResult,
+      agendaHistorico,
+    ] = await Promise.all([
       aba === "timeline"
-        ? await timelineService.listarPorPaciente(sessao, id, {
+        ? timelineService.listarProfissionaisFiltro(sessao)
+        : Promise.resolve([] as Awaited<
+            ReturnType<TimelineService["listarProfissionaisFiltro"]>
+          >),
+      aba === "timeline"
+        ? timelineService.listarPorPaciente(sessao, id, {
             tipo: filtros.tipo,
             profissionalId: filtros.profissional,
             de: filtros.de,
             ate: filtros.ate,
             page: filtros.page,
           })
-        : null;
-
-    const painel =
+        : Promise.resolve(null),
       aba === "prontuario"
-        ? await prontuarioService.obterPainel(sessao, id)
-        : null;
-
-    const arquivosResult =
+        ? prontuarioService.obterPainel(sessao, id)
+        : Promise.resolve(null),
       aba === "arquivos"
-        ? await arquivoService.listar(sessao, {
+        ? arquivoService.listar(sessao, {
             pacienteId: id,
             escopo: "documentos",
             page: 1,
             pageSize: 50,
           })
-        : null;
-
-    const fotosResult =
+        : Promise.resolve(null),
       aba === "fotos"
-        ? await arquivoService.listar(sessao, {
+        ? arquivoService.listar(sessao, {
             pacienteId: id,
             escopo: "midia",
             page: 1,
             pageSize: 50,
           })
-        : null;
-
-    const agendaHistorico =
+        : Promise.resolve(null),
       aba === "agenda"
-        ? await agendaService.listarHistoricoPaciente(sessao, id)
-        : null;
+        ? agendaService.listarHistoricoPaciente(sessao, id)
+        : Promise.resolve(null),
+    ]);
 
     const categoriasDocs =
       aba === "arquivos"

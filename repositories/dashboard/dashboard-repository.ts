@@ -106,14 +106,15 @@ export class DashboardRepository {
           ocorrido_em: { gte: ha7 },
         },
       }),
-      prisma.evolucao.findMany({
-        where: {
-          clinica_id: clinicaId,
-          deleted_at: null,
-          data_evolucao: { gte: ha30 },
-        },
-        select: { data_evolucao: true },
-      }),
+      prisma.$queryRaw<Array<{ dia: string; total: bigint }>>`
+        SELECT to_char(e.data_evolucao, 'YYYY-MM-DD') AS dia,
+               COUNT(*)::bigint AS total
+        FROM evolucoes e
+        WHERE e.clinica_id = ${clinicaId}::uuid
+          AND e.deleted_at IS NULL
+          AND e.data_evolucao >= ${ha30}
+        GROUP BY 1
+      `,
       prisma.evolucao.findMany({
         where: {
           clinica_id: clinicaId,
@@ -151,9 +152,8 @@ export class DashboardRepository {
     }
     const indice = new Map(dias.map((x, i) => [x.dia, i]));
     for (const e of evolucoesPeriodo) {
-      const chave = new Date(e.data_evolucao).toISOString().slice(0, 10);
-      const i = indice.get(chave);
-      if (i != null) dias[i]!.total += 1;
+      const i = indice.get(e.dia);
+      if (i != null) dias[i]!.total = Number(e.total);
     }
 
     return {

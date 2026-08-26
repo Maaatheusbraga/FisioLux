@@ -18,7 +18,6 @@ function formToObject(formData: FormData) {
   return {
     nome: formData.get("nome"),
     cpf: formData.get("cpf"),
-    rg: formData.get("rg") || undefined,
     sexo: formData.get("sexo") || "nao_informado",
     data_nascimento: formData.get("data_nascimento"),
     telefone: formData.get("telefone") || undefined,

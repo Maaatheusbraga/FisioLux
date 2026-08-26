@@ -3,27 +3,44 @@ import type { AgendaEvento, Prisma } from "@prisma/client";
 
 type Tx = Prisma.TransactionClient;
 
+export type AgendaEventoListaItem = {
+  id: string;
+  titulo: string;
+  descricao: string | null;
+  inicio: Date;
+  fim: Date;
+  paciente: { id: string; nome: string } | null;
+  usuario: { id: string; nome: string } | null;
+};
+
 export type AgendaEventoComRelacoes = AgendaEvento & {
   paciente: { id: string; nome: string } | null;
   usuario: { id: string; nome: string } | null;
 };
+
+const selectLista = {
+  id: true,
+  titulo: true,
+  descricao: true,
+  inicio: true,
+  fim: true,
+  paciente: { select: { id: true, nome: true } },
+  usuario: { select: { id: true, nome: true } },
+} as const;
 
 export class AgendaRepository {
   async listarPorPeriodo(
     clinicaId: string,
     de: Date,
     ate: Date,
-  ): Promise<AgendaEventoComRelacoes[]> {
+  ): Promise<AgendaEventoListaItem[]> {
     return prisma.agendaEvento.findMany({
       where: {
         clinica_id: clinicaId,
         deleted_at: null,
         inicio: { gte: de, lte: ate },
       },
-      include: {
-        paciente: { select: { id: true, nome: true } },
-        usuario: { select: { id: true, nome: true } },
-      },
+      select: selectLista,
       orderBy: { inicio: "asc" },
     });
   }
@@ -83,9 +100,9 @@ export class AgendaRepository {
     return tx.agendaEvento.update({ where: { id }, data });
   }
 
-  async softDelete(tx: Tx, id: string) {
-    return tx.agendaEvento.update({
-      where: { id },
+  async softDelete(tx: Tx, clinicaId: string, id: string) {
+    return tx.agendaEvento.updateMany({
+      where: { id, clinica_id: clinicaId, deleted_at: null },
       data: { deleted_at: new Date() },
     });
   }
@@ -94,17 +111,14 @@ export class AgendaRepository {
     clinicaId: string,
     pacienteId: string,
     limite = 100,
-  ): Promise<AgendaEventoComRelacoes[]> {
+  ): Promise<AgendaEventoListaItem[]> {
     return prisma.agendaEvento.findMany({
       where: {
         clinica_id: clinicaId,
         paciente_id: pacienteId,
         deleted_at: null,
       },
-      include: {
-        paciente: { select: { id: true, nome: true } },
-        usuario: { select: { id: true, nome: true } },
-      },
+      select: selectLista,
       orderBy: { inicio: "desc" },
       take: limite,
     });

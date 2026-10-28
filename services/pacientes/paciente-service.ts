@@ -157,7 +157,7 @@ export class PacienteService {
   }
 
   async excluir(sessao: SessaoUsuario, id: string): Promise<void> {
-    assertPermissao(sessao.perfil, "pacientes.gerenciar");
+    assertPermissao(sessao.perfil, "pacientes.excluir");
 
     const arquivos = await this.pacientes.listarArquivosAtivos(
       sessao.clinicaId,
@@ -190,7 +190,11 @@ export class PacienteService {
       for (const arq of arquivos) {
         try {
           const moved = await storage.moveToTrash(arq.storage_key);
-          await this.pacientes.atualizarStorageKey(arq.id, moved.storageKey);
+          await this.pacientes.atualizarStorageKey(
+            sessao.clinicaId,
+            arq.id,
+            moved.storageKey,
+          );
         } catch {
           // metadados já estão soft-deleted
         }

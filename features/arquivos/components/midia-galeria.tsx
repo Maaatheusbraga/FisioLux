@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ConfirmForm } from "@/components/ui/confirm-form";
@@ -25,8 +25,9 @@ function ehImagem(mime: string) {
 
 /**
  * Galeria com preview via URL assinada (temporária).
- * Impacto: 1 request por mídia ao montar; imagens carregam o arquivo original
- * (não há thumbnail no storage nesta versão).
+ * A URL de cada mídia só é buscada quando o card entra (ou se aproxima) do
+ * viewport — evita disparar N requests ao Storage de uma vez ao montar.
+ * Imagens carregam o arquivo original (não há thumbnail no storage nesta versão).
  */
 export function MidiaGaleria({
   midias,
@@ -37,34 +38,27 @@ export function MidiaGaleria({
 }: Props) {
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [erros, setErros] = useState<Record<string, boolean>>({});
+  const pendentesRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    let cancelled = false;
-    async function carregar() {
-      const next: Record<string, string> = {};
-      const fails: Record<string, boolean> = {};
-      await Promise.all(
-        midias.map(async (m) => {
-          const res = await obterUrlAssinadaArquivoAction(m.id);
-          if (cancelled) return;
-          if (res.ok) next[m.id] = res.url;
-          else fails[m.id] = true;
-        }),
-      );
-      if (!cancelled) {
-        setUrls(next);
-        setErros(fails);
-      }
-    }
-    if (midias.length > 0) void carregar();
-    else {
-      setUrls({});
-      setErros({});
-    }
-    return () => {
-      cancelled = true;
-    };
+    setUrls({});
+    setErros({});
+    pendentesRef.current.clear();
   }, [midias]);
+
+  const onNeedUrl = useCallback((id: string) => {
+    if (pendentesRef.current.has(id)) return;
+    pendentesRef.current.add(id);
+    void (async () => {
+      const res = await obterUrlAssinadaArquivoAction(id);
+      pendentesRef.current.delete(id);
+      if (res.ok) {
+        setUrls((prev) => ({ ...prev, [id]: res.url }));
+      } else {
+        setErros((prev) => ({ ...prev, [id]: true }));
+      }
+    })();
+  }, []);
 
   if (midias.length === 0) {
     return (
@@ -85,90 +79,134 @@ export function MidiaGaleria({
 
   return (
     <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {midias.map((m) => {
-        const url = urls[m.id];
-        const imagem = ehImagem(m.mime_type);
-        return (
-          <li
-            key={m.id}
-            className="overflow-hidden rounded-xl border border-border bg-surface-raised"
-          >
-            <div className="relative aspect-[4/3] bg-surface">
-              {url && imagem ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={url}
-                  alt={m.descricao || m.nome_original || "Foto"}
-                  className="size-full object-cover"
-                  loading="lazy"
-                />
-              ) : url && !imagem ? (
-                <div className="flex size-full flex-col items-center justify-center gap-2 p-4 text-center">
-                  <p className="text-sm font-medium text-ink">Vídeo</p>
-                  <p className="truncate text-xs text-ink-subtle">
-                    {m.nome_original}
-                  </p>
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => window.open(url, "_blank", "noopener,noreferrer")}
-                  >
-                    Reproduzir
-                  </Button>
-                </div>
-              ) : erros[m.id] ? (
-                <div className="flex size-full items-center justify-center text-xs text-ink-muted">
-                  Preview indisponível
-                </div>
-              ) : (
-                <div className="flex size-full items-center justify-center text-xs text-ink-muted">
-                  Carregando preview…
-                </div>
-              )}
-            </div>
-            <div className="space-y-2 p-3">
-              <p className="text-xs text-ink-subtle">
-                {formatarDataHoraBr(new Date(m.data_upload))}
-              </p>
-              <p className="truncate text-sm font-medium text-ink">
-                {m.categoria === "video" ? "Vídeo" : "Foto"}
-                {m.descricao ? ` · ${m.descricao}` : ""}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="secondary"
-                  disabled={!url}
-                  onClick={() => {
-                    if (!url) return;
-                    window.open(url, "_blank", "noopener,noreferrer");
-                  }}
-                >
-                  Abrir
-                </Button>
-                <ConfirmForm
-                  action={excluirArquivoAction}
-                  title="Excluir mídia"
-                  message="Excluir esta mídia (vai para a lixeira)?"
-                  confirmLabel="Excluir"
-                >
-                  <input type="hidden" name="id" value={m.id} />
-                  <input type="hidden" name="paciente_id" value={pacienteId} />
-                  {m.sessao_id ? (
-                    <input type="hidden" name="sessao_id" value={m.sessao_id} />
-                  ) : null}
-                  <input type="hidden" name="redirect_to" value={redirectTo} />
-                  <Button type="submit" size="sm" variant="danger">
-                    Excluir
-                  </Button>
-                </ConfirmForm>
-              </div>
-            </div>
-          </li>
-        );
-      })}
+      {midias.map((m) => (
+        <MidiaCard
+          key={m.id}
+          midia={m}
+          pacienteId={pacienteId}
+          redirectTo={redirectTo}
+          url={urls[m.id]}
+          erro={erros[m.id] ?? false}
+          onNeedUrl={onNeedUrl}
+        />
+      ))}
     </ul>
+  );
+}
+
+function MidiaCard({
+  midia: m,
+  pacienteId,
+  redirectTo,
+  url,
+  erro,
+  onNeedUrl,
+}: {
+  midia: ArquivoListaItem;
+  pacienteId: string;
+  redirectTo: string;
+  url: string | undefined;
+  erro: boolean;
+  onNeedUrl: (id: string) => void;
+}) {
+  const ref = useRef<HTMLLIElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || url) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          onNeedUrl(m.id);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "300px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [m.id, url, onNeedUrl]);
+
+  const imagem = ehImagem(m.mime_type);
+
+  return (
+    <li
+      ref={ref}
+      className="overflow-hidden rounded-xl border border-border bg-surface-raised"
+    >
+      <div className="relative aspect-[4/3] bg-surface">
+        {url && imagem ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={url}
+            alt={m.descricao || m.nome_original || "Foto"}
+            className="size-full object-cover"
+            loading="lazy"
+          />
+        ) : url && !imagem ? (
+          <div className="flex size-full flex-col items-center justify-center gap-2 p-4 text-center">
+            <p className="text-sm font-medium text-ink">Vídeo</p>
+            <p className="truncate text-xs text-ink-subtle">
+              {m.nome_original}
+            </p>
+            <Button
+              type="button"
+              size="sm"
+              variant="secondary"
+              onClick={() => window.open(url, "_blank", "noopener,noreferrer")}
+            >
+              Reproduzir
+            </Button>
+          </div>
+        ) : erro ? (
+          <div className="flex size-full items-center justify-center text-xs text-ink-muted">
+            Preview indisponível
+          </div>
+        ) : (
+          <div className="flex size-full items-center justify-center text-xs text-ink-muted">
+            Carregando preview…
+          </div>
+        )}
+      </div>
+      <div className="space-y-2 p-3">
+        <p className="text-xs text-ink-subtle">
+          {formatarDataHoraBr(new Date(m.data_upload))}
+        </p>
+        <p className="truncate text-sm font-medium text-ink">
+          {m.categoria === "video" ? "Vídeo" : "Foto"}
+          {m.descricao ? ` · ${m.descricao}` : ""}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            disabled={!url}
+            onClick={() => {
+              if (!url) return;
+              window.open(url, "_blank", "noopener,noreferrer");
+            }}
+          >
+            Abrir
+          </Button>
+          <ConfirmForm
+            action={excluirArquivoAction}
+            title="Excluir mídia"
+            message="Excluir esta mídia (vai para a lixeira)?"
+            confirmLabel="Excluir"
+          >
+            <input type="hidden" name="id" value={m.id} />
+            <input type="hidden" name="paciente_id" value={pacienteId} />
+            {m.sessao_id ? (
+              <input type="hidden" name="sessao_id" value={m.sessao_id} />
+            ) : null}
+            <input type="hidden" name="redirect_to" value={redirectTo} />
+            <Button type="submit" size="sm" variant="danger">
+              Excluir
+            </Button>
+          </ConfirmForm>
+        </div>
+      </div>
+    </li>
   );
 }

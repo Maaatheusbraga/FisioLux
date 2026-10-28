@@ -12,7 +12,11 @@ import type {
 type Tx = Prisma.TransactionClient;
 
 export class ProntuarioRepository {
-  async listarPorPaciente(clinicaId: string, pacienteId: string) {
+  async listarPorPaciente(
+    clinicaId: string,
+    pacienteId: string,
+    opts: { limiteEvolucoes?: number } = {},
+  ) {
     const whereBase = {
       clinica_id: clinicaId,
       paciente_id: pacienteId,
@@ -62,9 +66,14 @@ export class ProntuarioRepository {
           sessao: { select: { id: true, realizado_em: true } },
         },
         orderBy: [{ data_evolucao: "desc" }, { created_at: "desc" }],
+        take: opts.limiteEvolucoes,
       }),
       prisma.alta.findMany({
-        where: { clinica_id: clinicaId, paciente_id: pacienteId },
+        where: {
+          clinica_id: clinicaId,
+          paciente_id: pacienteId,
+          deleted_at: null,
+        },
         select: {
           id: true,
           data_alta: true,
@@ -335,6 +344,7 @@ export class ProntuarioRepository {
         clinica_id: clinicaId,
         paciente_id: pacienteId,
         data_reabertura: null,
+        deleted_at: null,
       },
       orderBy: [{ data_alta: "desc" }, { created_at: "desc" }],
     });
@@ -365,6 +375,7 @@ export class ProntuarioRepository {
         id: altaId,
         clinica_id: clinicaId,
         data_reabertura: null,
+        deleted_at: null,
       },
     });
     if (!existente) throw new Error("Alta ativa não encontrada.");

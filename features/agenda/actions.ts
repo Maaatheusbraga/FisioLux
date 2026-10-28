@@ -7,7 +7,6 @@ import { AgendaService } from "@/services/agenda/agenda-service";
 import { GoogleCalendarService } from "@/services/agenda/google-calendar-service";
 import { agendaEventoFormSchema } from "@/lib/validations/agenda";
 import { mensagemDeErro } from "@/lib/errors/app-error";
-import { prisma } from "@/lib/prisma";
 
 export type AgendaActionState = {
   ok: boolean;
@@ -137,18 +136,5 @@ export async function desconectarGoogleAgendaFormAction(
 
 export async function obterStatusGoogleAgenda() {
   const sessao = await exigirSessao();
-  assertPermissao(sessao.perfil, "clinica.configurar");
-  const clinica = await prisma.clinica.findFirst({
-    where: { id: sessao.clinicaId, deleted_at: null },
-    select: {
-      agenda_google_refresh_token: true,
-      agenda_google_calendar_id: true,
-      agenda_google_watch_expira_em: true,
-    },
-  });
-  return {
-    conectado: Boolean(clinica?.agenda_google_refresh_token),
-    calendarId: clinica?.agenda_google_calendar_id ?? "primary",
-    watchExpiraEm: clinica?.agenda_google_watch_expira_em ?? null,
-  };
+  return agendaService.obterStatusGoogle(sessao);
 }

@@ -37,6 +37,7 @@ export class ProntuarioService {
     const dados = await this.prontuario.listarPorPaciente(
       sessao.clinicaId,
       pacienteId,
+      { limiteEvolucoes: 200 },
     );
     return { paciente, ...dados };
   }

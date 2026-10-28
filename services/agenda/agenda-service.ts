@@ -3,6 +3,7 @@ import { AppError } from "@/lib/errors/app-error";
 import { assertPermissao } from "@/lib/auth/permissoes";
 import type { SessaoUsuario } from "@/lib/auth/sessao";
 import { AgendaRepository } from "@/repositories/agenda/agenda-repository";
+import { PacienteRepository } from "@/repositories/pacientes/paciente-repository";
 import {
   GoogleCalendarService,
   type ClinicaAgendaOAuth,
@@ -15,19 +16,16 @@ export class AgendaService {
   constructor(
     private readonly agenda = new AgendaRepository(),
     private readonly google = new GoogleCalendarService(),
+    private readonly pacientes = new PacienteRepository(),
   ) {}
 
   async listarHistoricoPaciente(sessao: SessaoUsuario, pacienteId: string) {
     assertPermissao(sessao.perfil, "pacientes.gerenciar");
 
-    const paciente = await prisma.paciente.findFirst({
-      where: {
-        id: pacienteId,
-        clinica_id: sessao.clinicaId,
-        deleted_at: null,
-      },
-      select: { id: true },
-    });
+    const paciente = await this.pacientes.buscarPorId(
+      sessao.clinicaId,
+      pacienteId,
+    );
     if (!paciente) {
       throw new AppError("Paciente não encontrado.", "PACIENTE_NOT_FOUND");
     }
@@ -159,7 +157,7 @@ export class AgendaService {
     });
 
     return prisma.$transaction(async (tx) => {
-      return this.agenda.atualizar(tx, local.id, {
+      return this.agenda.atualizar(tx, sessao.clinicaId, local.id, {
         paciente_id: input.paciente_id ?? null,
         titulo: input.titulo,
         descricao: input.descricao ?? null,
@@ -238,8 +236,19 @@ export class AgendaService {
         maxResults: 250,
       });
 
-      for (const item of res.data.items ?? []) {
-        await this.aplicarEventoGoogle(clinicaId, calendarId, item);
+      const eventos = res.data.items ?? [];
+      const { pacientesValidos, usuariosValidos } = await this.construirMapas(
+        clinicaId,
+        eventos,
+      );
+      for (const item of eventos) {
+        await this.aplicarEventoGoogle(
+          clinicaId,
+          calendarId,
+          item,
+          pacientesValidos,
+          usuariosValidos,
+        );
       }
 
       pageToken = res.data.nextPageToken ?? undefined;
@@ -278,8 +287,17 @@ export class AgendaService {
               }),
         });
 
-        for (const item of res.data.items ?? []) {
-          await this.aplicarEventoGoogle(clinicaId, calendarId, item);
+        const eventos = res.data.items ?? [];
+        const { pacientesValidos, usuariosValidos } =
+          await this.construirMapas(clinicaId, eventos);
+        for (const item of eventos) {
+          await this.aplicarEventoGoogle(
+            clinicaId,
+            calendarId,
+            item,
+            pacientesValidos,
+            usuariosValidos,
+          );
         }
 
         pageToken = res.data.nextPageToken ?? undefined;
@@ -309,10 +327,55 @@ export class AgendaService {
     }
   }
 
+  /** Valida em lote (1 query cada) os paciente_id/usuario_id referenciados numa página de eventos do Google. */
+  private async construirMapas(
+    clinicaId: string,
+    eventos: calendar_v3.Schema$Event[],
+  ): Promise<{ pacientesValidos: Set<string>; usuariosValidos: Set<string> }> {
+    const pacienteIds = new Set<string>();
+    const usuarioIds = new Set<string>();
+    for (const evento of eventos) {
+      const pacienteId = this.google.extrairPacienteId(evento);
+      if (pacienteId) pacienteIds.add(pacienteId);
+      const usuarioId = this.google.extrairUsuarioId(evento);
+      if (usuarioId) usuarioIds.add(usuarioId);
+    }
+
+    const [pacientes, usuarios] = await Promise.all([
+      pacienteIds.size
+        ? prisma.paciente.findMany({
+            where: {
+              id: { in: [...pacienteIds] },
+              clinica_id: clinicaId,
+              deleted_at: null,
+            },
+            select: { id: true },
+          })
+        : Promise.resolve([]),
+      usuarioIds.size
+        ? prisma.usuario.findMany({
+            where: {
+              id: { in: [...usuarioIds] },
+              clinica_id: clinicaId,
+              deleted_at: null,
+            },
+            select: { id: true },
+          })
+        : Promise.resolve([]),
+    ]);
+
+    return {
+      pacientesValidos: new Set(pacientes.map((p) => p.id)),
+      usuariosValidos: new Set(usuarios.map((u) => u.id)),
+    };
+  }
+
   private async aplicarEventoGoogle(
     clinicaId: string,
     calendarId: string,
     evento: calendar_v3.Schema$Event,
+    pacientesValidos: Set<string>,
+    usuariosValidos: Set<string>,
   ) {
     if (!evento.id) return;
 
@@ -339,30 +402,14 @@ export class AgendaService {
     );
 
     let pacienteId: string | null = pacienteGoogle ?? existente?.paciente_id ?? null;
-    if (pacienteId) {
-      const ok = await prisma.paciente.findFirst({
-        where: {
-          id: pacienteId,
-          clinica_id: clinicaId,
-          deleted_at: null,
-        },
-        select: { id: true },
-      });
-      if (!ok) pacienteId = existente?.paciente_id ?? null;
+    if (pacienteId && !pacientesValidos.has(pacienteId)) {
+      pacienteId = existente?.paciente_id ?? null;
     }
 
     const usuarioGoogle = this.google.extrairUsuarioId(evento);
     let usuarioId: string | null = usuarioGoogle ?? existente?.usuario_id ?? null;
-    if (usuarioId) {
-      const ok = await prisma.usuario.findFirst({
-        where: {
-          id: usuarioId,
-          clinica_id: clinicaId,
-          deleted_at: null,
-        },
-        select: { id: true },
-      });
-      if (!ok) usuarioId = existente?.usuario_id ?? null;
+    if (usuarioId && !usuariosValidos.has(usuarioId)) {
+      usuarioId = existente?.usuario_id ?? null;
     }
 
     await prisma.$transaction(async (tx) => {
@@ -405,11 +452,18 @@ export class AgendaService {
     return clinica;
   }
 
+  async obterStatusGoogle(sessao: SessaoUsuario) {
+    assertPermissao(sessao.perfil, "clinica.configurar");
+    const clinica = await this.agenda.buscarStatusGoogle(sessao.clinicaId);
+    return {
+      conectado: Boolean(clinica?.agenda_google_refresh_token),
+      calendarId: clinica?.agenda_google_calendar_id ?? "primary",
+      watchExpiraEm: clinica?.agenda_google_watch_expira_em ?? null,
+    };
+  }
+
   private async validarPaciente(clinicaId: string, pacienteId: string) {
-    const paciente = await prisma.paciente.findFirst({
-      where: { id: pacienteId, clinica_id: clinicaId, deleted_at: null },
-      select: { id: true },
-    });
+    const paciente = await this.pacientes.buscarPorId(clinicaId, pacienteId);
     if (!paciente) {
       throw new AppError("Paciente inválido.", "VALIDATION");
     }

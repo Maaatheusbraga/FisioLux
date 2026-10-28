@@ -3,7 +3,11 @@ import { google, type calendar_v3 } from "googleapis";
 import type { OAuth2Client } from "google-auth-library";
 import { prisma } from "@/lib/prisma";
 import { AppError } from "@/lib/errors/app-error";
-import { criptografar, descriptografar } from "@/lib/security/secret-crypto";
+import {
+  criptografar,
+  descriptografar,
+  assinarEstado,
+} from "@/lib/security/secret-crypto";
 import { redirectUriOAuth } from "@/lib/agenda/oauth-redirect";
 
 export { redirectUriOAuth } from "@/lib/agenda/oauth-redirect";
@@ -295,7 +299,7 @@ export class GoogleCalendarService {
         id: channelId,
         type: "web_hook",
         address: webhookUrl,
-        token: clinica.id,
+        token: assinarEstado({ clinicaId: clinica.id }),
         expiration: String(expiration),
       },
     });

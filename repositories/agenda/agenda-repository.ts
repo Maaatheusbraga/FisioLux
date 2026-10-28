@@ -87,6 +87,7 @@ export class AgendaRepository {
 
   async atualizar(
     tx: Tx,
+    clinicaId: string,
     id: string,
     data: {
       paciente_id?: string | null;
@@ -97,6 +98,13 @@ export class AgendaRepository {
       google_updated_at?: Date | null;
     },
   ) {
+    const existente = await tx.agendaEvento.findFirst({
+      where: { id, clinica_id: clinicaId, deleted_at: null },
+      select: { id: true },
+    });
+    if (!existente) {
+      throw new Error("Evento não encontrado.");
+    }
     return tx.agendaEvento.update({ where: { id }, data });
   }
 
@@ -121,6 +129,17 @@ export class AgendaRepository {
       select: selectLista,
       orderBy: { inicio: "desc" },
       take: limite,
+    });
+  }
+
+  async buscarStatusGoogle(clinicaId: string) {
+    return prisma.clinica.findFirst({
+      where: { id: clinicaId, deleted_at: null },
+      select: {
+        agenda_google_refresh_token: true,
+        agenda_google_calendar_id: true,
+        agenda_google_watch_expira_em: true,
+      },
     });
   }
 

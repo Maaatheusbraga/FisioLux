@@ -160,6 +160,10 @@ export class PacienteRepository {
       where: { clinica_id: clinicaId, paciente_id: id, deleted_at: null },
       data: { deleted_at: agora },
     });
+    await tx.alta.updateMany({
+      where: { clinica_id: clinicaId, paciente_id: id, deleted_at: null },
+      data: { deleted_at: agora },
+    });
 
     return tx.paciente.update({
       where: { id },
@@ -183,11 +187,12 @@ export class PacienteRepository {
   }
 
   async atualizarStorageKey(
+    clinicaId: string,
     id: string,
     storageKey: string,
   ): Promise<void> {
-    await prisma.arquivo.update({
-      where: { id },
+    await prisma.arquivo.updateMany({
+      where: { id, clinica_id: clinicaId },
       data: { storage_key: storageKey },
     });
   }

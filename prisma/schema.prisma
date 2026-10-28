@@ -254,6 +254,7 @@ model Paciente {
   @@index([clinica_id])
   @@index([clinica_id, nome])
   @@index([clinica_id, status])
+  // Unicidade de CPF por clínica (ativos): índice parcial na migration RLS (pacientes_clinica_cpf_ativos_uidx)
   @@index([clinica_id, cpf])
   @@index([telefone])
   @@index([whatsapp])
@@ -480,6 +481,7 @@ model Alta {
   usuario_reabertura_id String? @db.Uuid
   created_at       DateTime  @default(now())
   updated_at       DateTime  @updatedAt
+  deleted_at       DateTime?
 
   clinica  Clinica  @relation(fields: [clinica_id], references: [id], onDelete: Restrict)
   paciente Paciente @relation(fields: [paciente_id], references: [id], onDelete: Restrict)
@@ -491,6 +493,7 @@ model Alta {
   @@index([paciente_id])
   @@index([paciente_id, data_alta])
   @@index([data_alta])
+  @@index([deleted_at])
   @@map("altas")
 }
 

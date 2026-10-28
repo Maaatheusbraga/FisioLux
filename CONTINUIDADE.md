@@ -1,9 +1,9 @@
 # Continuidade FisioLux — retomar exatamente daqui
 
-> **Última atualização:** 2026-08-18  
+> **Última atualização:** 2026-10-28  
 > **Branch:** `main`  
 > **Repo:** https://github.com/Maaatheusbraga/FisioLux.git  
-> **Status:** MVP no ar; Atendimentos e ultrassom retirados da UI (ADR 015)
+> **Status:** MVP no ar + auditoria de arquitetura/perf/segurança aplicada (commits `bf9416a` e `9fc631d`); falta reconectar Google Calendar e validar manualmente (ver seção 2.1)
 
 ---
 
@@ -36,6 +36,35 @@ Perfil de uso: **mais celular/tablet** do que desktop — UI evoluída para mobi
 - Campos familiar/social/hábitos/exames → `Avaliacao.dados_complementares.contexto`.
 - Tabela `anamneses` **mantida** só para legado (editar/excluir + PDF “Anamnese (legado)”).
 - Eixo do prontuário: **Avaliação → Plano → Evolução → Alta**.
+
+## 2.1 Auditoria de arquitetura/perf/segurança — 2026-10-27/28
+
+Feita uma auditoria completa (claude code: 3 agentes de exploração — arquitetura, performance, segurança — + 1 agente de design do plano) e aplicadas 10 correções, já commitadas e deployadas na VPS.
+
+**Commits:** `bf9416a` (as 10 correções) + `9fc631d` (fix de um bug encontrado durante a validação, ver abaixo). Ambos já em `origin/main` e já deployados na VPS no momento desta atualização.
+
+**O que foi corrigido (resumo, do mais crítico):**
+1. Exclusão de paciente exigia só a permissão genérica (`pacientes.gerenciar`) no servidor — Fisioterapeuta/Recepção conseguiam excluir paciente direto via action, só a UI escondia o botão. Corrigido para exigir `pacientes.excluir` (admin-only) no server.
+2. Webhook do Google Calendar rodava o sync de forma síncrona no request — risco real de 504 (igual um bug que já tinha sido corrigido no callback OAuth). Corrigido para rodar em background (`after()`).
+3. N+1 na sincronização da agenda (lookup de paciente/usuário por evento) — trocado por lookup em lote.
+4. Galeria de fotos buscava 1 signed URL por item, todas no carregamento da página — trocado por carregamento lazy (`IntersectionObserver`).
+5. Aba do prontuário limitada a 200 evoluções mais recentes (PDF exportado continua com histórico completo).
+6. Dois métodos de repository sem filtro `clinica_id` corrigidos (agenda e storage key de paciente).
+7. Uma action de agenda que chamava Prisma direto, pulando repository/service — corrigida.
+8. Token do webhook do Google Calendar passou a ser assinado com HMAC (antes era o UUID puro da clínica).
+9. Lógica duplicada de "paciente pertence à clínica" consolidada.
+10. `Alta` ganhou `deleted_at` (soft delete) — faltava, era a única tabela clínica sem. Migration `prisma/migrations/20260827000000_alta_deleted_at/` já aplicada em produção (confirmada no log do `docker compose up` — "All migrations have been successfully applied").
+
+**Bug extra encontrado e corrigido durante a validação (commit `9fc631d`):** upload de foto/arquivo mostrava "Não foi possível enviar o arquivo." mesmo quando o upload funcionava. Causa: `redirectComAviso` (usa `redirect()` do Next.js) estava dentro do mesmo `try/catch` que trata erros reais — o redirect "de sucesso" caía no catch genérico. Corrigido movendo o redirect para fora do try/catch (padrão já usado em todas as outras actions do sistema).
+
+**Pendente (retomar daqui em qualquer PC):**
+- [ ] **Reconectar o Google Calendar** em Configurações → Agenda → Conectar conta Google. Foi desconectado durante a auditoria (token do webhook mudou de formato) e a reconexão precisa de verificação OAuth em outro dispositivo (celular) que não estava disponível. Sem isso, o webhook automático da agenda fica mudo (mas o botão **Sincronizar** manual funciona normalmente nesse meio tempo).
+- [ ] Depois de reconectar: criar evento de teste na Agenda, clicar em Sincronizar, confirmar que aparece certo.
+- [ ] Testar upload de foto de novo (valida o fix do commit `9fc631d`) — a mensagem de sucesso deve aparecer certa agora.
+- [ ] Dar alta em um paciente de teste e confirmar que aparece certo no prontuário (valida o `deleted_at` em `Alta`).
+- [ ] Confirmar que Recepção/Fisioterapeuta não conseguem mais excluir paciente (deve dar erro de permissão).
+
+**Nota:** o banco Supabase (`ahihcqxxjyjfnhyrllcs`) é o único ambiente — não há banco de dev/staging separado. O deploy na VPS (`docker compose -p fisiolux up -d`) já roda `prisma migrate deploy` automaticamente via entrypoint, então qualquer migration pendente é aplicada nesse passo.
 
 ## 3. Stack e infra
 

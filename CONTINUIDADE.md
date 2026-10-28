@@ -57,12 +57,14 @@ Feita uma auditoria completa (claude code: 3 agentes de exploração — arquite
 
 **Bug extra encontrado e corrigido durante a validação (commit `9fc631d`):** upload de foto/arquivo mostrava "Não foi possível enviar o arquivo." mesmo quando o upload funcionava. Causa: `redirectComAviso` (usa `redirect()` do Next.js) estava dentro do mesmo `try/catch` que trata erros reais — o redirect "de sucesso" caía no catch genérico. Corrigido movendo o redirect para fora do try/catch (padrão já usado em todas as outras actions do sistema).
 
+**Validado em produção (2026-10-28):**
+- [x] Upload de foto/arquivo — funciona e mostra a mensagem correta (valida o fix do commit `9fc631d`).
+- [x] Recepção/Fisioterapeuta não conseguem mais excluir paciente.
+- [x] Dar alta em paciente de teste — aparece certo no prontuário (valida o `deleted_at` em `Alta`).
+
 **Pendente (retomar daqui em qualquer PC):**
 - [ ] **Reconectar o Google Calendar** em Configurações → Agenda → Conectar conta Google. Foi desconectado durante a auditoria (token do webhook mudou de formato) e a reconexão precisa de verificação OAuth em outro dispositivo (celular) que não estava disponível. Sem isso, o webhook automático da agenda fica mudo (mas o botão **Sincronizar** manual funciona normalmente nesse meio tempo).
 - [ ] Depois de reconectar: criar evento de teste na Agenda, clicar em Sincronizar, confirmar que aparece certo.
-- [ ] Testar upload de foto de novo (valida o fix do commit `9fc631d`) — a mensagem de sucesso deve aparecer certa agora.
-- [ ] Dar alta em um paciente de teste e confirmar que aparece certo no prontuário (valida o `deleted_at` em `Alta`).
-- [ ] Confirmar que Recepção/Fisioterapeuta não conseguem mais excluir paciente (deve dar erro de permissão).
 
 **Nota:** o banco Supabase (`ahihcqxxjyjfnhyrllcs`) é o único ambiente — não há banco de dev/staging separado. O deploy na VPS (`docker compose -p fisiolux up -d`) já roda `prisma migrate deploy` automaticamente via entrypoint, então qualquer migration pendente é aplicada nesse passo.
 

@@ -54,6 +54,7 @@ export async function uploadArquivoAction(
 
   const redirectTo = String(formData.get("redirect_to") || "").trim();
 
+  let mensagemSucesso: string;
   try {
     const sessao = await exigirSessao();
     let enviados = 0;
@@ -89,29 +90,31 @@ export async function uploadArquivoAction(
       revalidatePath(`/sessoes/${parsed.data.sessao_id}`);
     }
 
-    const mensagemSucesso =
+    mensagemSucesso =
       enviados === 1
         ? "Arquivo enviado."
         : `${enviados} arquivos enviados.`;
-
-    if (redirectTo) {
-      const destino = caminhoInterno(
-        redirectTo,
-        `/pacientes/${parsed.data.paciente_id}`,
-      );
-      return await redirectComAviso(destino, mensagemSucesso);
-    }
-
-    return {
-      ok: true,
-      message: mensagemSucesso,
-    };
   } catch (error) {
     return {
       ok: false,
       message: mensagemDeErro(error, "Não foi possível enviar o arquivo."),
     };
   }
+
+  // Fora do try/catch: redirect() do Next lança um erro de controle (NEXT_REDIRECT)
+  // que seria capturado pelo catch acima e exibido como falha de upload.
+  if (redirectTo) {
+    const destino = caminhoInterno(
+      redirectTo,
+      `/pacientes/${parsed.data.paciente_id}`,
+    );
+    return await redirectComAviso(destino, mensagemSucesso);
+  }
+
+  return {
+    ok: true,
+    message: mensagemSucesso,
+  };
 }
 
 export async function excluirArquivoAction(formData: FormData): Promise<void> {
